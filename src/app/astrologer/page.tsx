@@ -119,7 +119,7 @@ export default function AstrologerPage() {
       Name: astro.astrologerName,
       Email: astro.email,
       Mobile: astro.phoneNumber,
-      "Created Date": moment(astro.createdAt).format("Do MMM YYYY"),
+      "Created Date": moment(astro.createdAt).format("DD/MM/YYYY"),
       Status: astro.isVerified ? "Verified" : "Unverified",
     }));
   }, [filteredData]);
@@ -341,16 +341,16 @@ const changeStatus = async (
   const columns=useMemo(
     () => [
       {
-        name: "S.No.",
+        name: "",
         selector: (_row:any, index?:number) => (index !== undefined ? index + 1 : 0),
-        width: "80px",
+        width: "40px",
       },
-      { name: "Name", selector: (row:any) => row.astrologerName },
+      { name: "Name", selector: (row:any) => row.astrologerName, width: "180px" },
       { name: "Email", selector: (row:any) => row.email, width: "250px" },
-      { name: "Mobile", selector: (row:any) => row.phoneNumber },
+      { name: "Mobile", selector: (row:any) => row.phoneNumber || "N/A" ,  width: "150px"},
       {
         name: "Created Date",
-        selector: (row:any) => moment(row.createdAt).format("Do MMM YYYY"),
+        selector: (row:any) => moment(row.createdAt).format("DD/MM/YYYY"),
         width: "140px",
       },
       {

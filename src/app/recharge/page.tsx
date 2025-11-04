@@ -155,11 +155,11 @@ const Recharge = () => {
     },
     { 
       name: "Start Date", 
-      selector: (row: RechargePlan) => row?.startDate ? moment(row.startDate).format("DD-MM-YYYY") : "N/A"
+      selector: (row: RechargePlan) => row?.startDate ? moment(row.startDate).format("DD/MM/YYYY") : "N/A"
     },
     { 
       name: "End Date", 
-      selector: (row: RechargePlan) => row?.endDate ? moment(row.endDate).format("DD-MM-YYYY") : "N/A"
+      selector: (row: RechargePlan) => row?.endDate ? moment(row.endDate).format("DD/MM/YYYY") : "N/A"
     },
     { 
       name: 'Status', 

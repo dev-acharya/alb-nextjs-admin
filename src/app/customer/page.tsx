@@ -322,26 +322,33 @@ export default function Customer() {
   // Table Columns
   const columns = [
     { 
-      name: "S.No.", 
+      name: "", 
       selector: (row: Customer) => customerData.indexOf(row) + 1, 
-      width: "80px" 
+      width: "40px" 
     },
     { 
       name: "Customer Name", 
-      selector: (row: Customer) => row?.customerName ? row.customerName : 'N/A' 
+      selector: (row: Customer) => row?.customerName ? row.customerName : 'N/A',
+      width: "170px"
+    },
+    { 
+      name: "Email", 
+      selector: (row: Customer) => row?.email ? row.email : 'N/A',
     },
     { 
       name: "Contact", 
-      selector: (row: Customer) => row?.phoneNumber 
+      selector: (row: Customer) => row?.phoneNumber ,
+      width: '130px'
     },
     { 
       name: "Wallet", 
       selector: (row: Customer) => IndianRupee(row?.wallet_balance) || 'N/A', 
-      width: '150px' 
+      width: '130px' 
     },
     { 
       name: "D.O.B", 
-      selector: (row: Customer) => row?.dateOfBirth ? moment(row.dateOfBirth).format('DD MMM YYYY') : 'N/A' 
+      selector: (row: Customer) => row?.dateOfBirth ? moment(row.dateOfBirth).format('DD/MM/YYYY') : 'N/A' ,
+      width: '120px'
     },
     { 
       name: "T.O.B", 
@@ -354,7 +361,7 @@ export default function Customer() {
         } catch {
           return 'N/A';
         }
-      }
+      },
     },
     { 
       name: 'Status', 

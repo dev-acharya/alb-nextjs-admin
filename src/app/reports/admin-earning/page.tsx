@@ -145,7 +145,7 @@ const AdminEarning: React.FC = () => {
       name: 'Date',
       selector: (row: AdminEarningRow) => row?.createdAt || '',
       cell: (row: AdminEarningRow) =>
-        row?.createdAt ? moment(row?.createdAt).format('DD-MM-YYYY') : 'N/A',
+        row?.createdAt ? moment(row?.createdAt).format('DD/MM/YYYY') : 'N/A',
     },
   ];
 
