@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import MainDatatable from '@/components/common/MainDatatable';
 import DownloadIcon from '@mui/icons-material/Download';
 import { CSVLink } from 'react-csv';
+import { Tooltip } from '@mui/material';
 
 interface PaymentDetails {
   paymentAmount?: string;
@@ -184,79 +185,40 @@ export default function Consultation() {
   const filteredByFilters = applyClientFilters(consultationData, filters);
   const finalFilteredData = DeepSearchSpace(filteredByFilters, searchText);
 
-  const columns = [
-    { 
-      name: 'S.No.', 
-      selector: (row: Consultation, index?: number) => (index ?? 0) + 1, 
-      width: '70px',
-      sortable: false 
-    },
-    { 
-      name: 'Astrologer', 
-      selector: (row: Consultation) => row?.astrologerId?.astrologerName || 'N/A', 
-      sortable: true,
-      width: '150px'
-    },
-    { 
-      name: 'Customer', 
-      selector: (row: Consultation) => row?.fullName || 'N/A', 
-      sortable: true,
-      width: '150px'
-    },
-    { 
-      name: 'Email', 
-      selector: (row: Consultation) => row?.customerId?.email || 'N/A',
-      width: '200px'
-    },
-    { 
-      name: 'Mobile', 
-      selector: (row: Consultation) => row?.mobileNumber || 'N/A',
-      width: '130px'
-    },
-    { 
-      name: 'DOB/TOB', 
-      selector: (row: Consultation) => `${row?.dateOfBirth || 'N/A'} / ${row?.timeOfBirth || 'N/A'}`,
-      width: '180px'
-    },
-    { 
-      name: 'POB', 
+const columns = [
+    { name: 'S.No.', selector: (row: Consultation) => consultationData.indexOf(row) + 1, width: '60px' },
+    { name: 'Astrologer', selector: (row: Consultation) => row?.astrologerId?.astrologerName || 'N/A', sortable: true , width: '160px' },
+    { name: 'Customer', selector: (row: Consultation) => row?.fullName || 'N/A', sortable: true, width: '145px' },
+    { name: 'Email', selector: (row: Consultation) => row?.customerId?.email || 'N/A', width: '250px' },
+    { name: 'Mobile', selector: (row: Consultation) => row?.mobileNumber || 'N/A', width: '110px' },
+    { name: 'DOB/TOB', selector: (row: Consultation) => `${moment(row?.date).format('DD/MM/YYYY') || ''} / ${moment(row?.date).format('DD/MM/YYYY') || ''}`, width: '190px' },
+    // { name: 'POB', selector: (row: Consultation) => row?.placeOfBirth || 'N/A', width: '190px' },
+    {
+      name: 'POB',
       selector: (row: Consultation) => row?.placeOfBirth || 'N/A',
-      width: '150px'
+      cell: (row: Consultation) => (
+        <Tooltip title={row?.placeOfBirth || 'N/A'} arrow placement="top">
+          <div style={{
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            width: "100%"
+          }}>
+            {row?.placeOfBirth || 'N/A'}
+          </div>
+        </Tooltip>
+      ),
+      width: '190px'
     },
-    { 
-      name: 'Date', 
-      selector: (row: Consultation) => row?.date ? moment(row.date).format('DD-MM-YYYY') : 'N/A',
-      sortable: true,
-      width: '120px'
-    },
-    { 
-      name: 'Slot', 
-      selector: (row: Consultation) => `${row?.slotId?.fromTime || 'N/A'} - ${row?.slotId?.toTime || 'N/A'}`,
-      width: '140px'
-    },
-    { 
-      name: 'Type', 
-      selector: (row: Consultation) => row?.consultationType || 'N/A',
-      width: '120px'
-    },
-    { 
-      name: 'Topic', 
-      selector: (row: Consultation) => row?.consultationTopic || 'N/A',
-      width: '150px'
-    },
-    { 
-      name: 'Amount', 
-      selector: (row: Consultation) => row?.paymentDetails?.paymentAmount || 'N/A',
-      width: '100px'
-    },
-    { 
-      name: 'Mode', 
-      selector: (row: Consultation) => row?.paymentDetails?.paymentMethod || 'N/A',
-      width: '100px'
-    },
+    { name: 'Date', selector: (row: Consultation) => moment(row?.date).format('DD/MM/YYYY') },
+    { name: 'Slot', selector: (row: Consultation) => `${row?.slotId?.fromTime || ''} - ${row?.slotId?.toTime || ''}`, width: '120px' },
+    { name: 'Type', selector: (row: Consultation) => row?.consultationType || 'N/A', width: '90px' },
+    { name: 'Topic', selector: (row: Consultation) => row?.consultationTopic || 'N/A', width: '100px' },
+    { name: 'Amount', selector: (row: Consultation) => row?.paymentDetails?.paymentAmount || 'N/A', width: '100px' },
+    { name: 'Mode', selector: (row: Consultation) => row?.paymentDetails?.paymentMethod || 'N/A' },
     {
       name: 'Status',
-      cell: (row: Consultation) => (
+      selector: (row: Consultation) => (
         <span className={`px-2 py-1 text-xs rounded-full font-medium ${
           row?.status === 'completed' ? 'bg-green-100 text-green-700' :
           row?.status === 'cancelled' ? 'bg-red-100 text-red-700' :
@@ -266,29 +228,22 @@ export default function Consultation() {
           {row?.status ? row.status.charAt(0).toUpperCase() + row.status.slice(1) : 'N/A'}
         </span>
       ),
-      width: '120px'
     },
-    {
-      name: 'Action',
-      cell: (row: Consultation) => (
-        <div className="flex gap-3">
-          <button 
-            onClick={() => router.push(`/consultation/view-consultation?id=${row._id}`)} 
-            className="text-blue-600 hover:underline text-sm"
-          >
-            View
-          </button>
-          <button 
-            onClick={() => router.push(`/consultation/edit-consultation?id=${row._id}`)} 
-            className="text-green-600 hover:underline text-sm"
-          >
-            Edit
-          </button>
-        </div>
-      ),
-      width: '120px'
-    },
+    // {
+    //   name: 'Action',
+    //   cell: (row: Consultation) => (
+    //     <div className="flex gap-3">
+    //       <button onClick={() => router.push(`/consultation/view-consultation?id=${row._id}`)} className="text-blue-600 hover:underline text-sm">
+    //         View
+    //       </button>
+    //       <button onClick={() => router.push(`/consultation/edit-consultation?id=${row._id}`)} className="text-green-600 hover:underline text-sm">
+    //         Edit
+    //       </button>
+    //     </div>
+    //   ),
+    // },
   ];
+
 
   const handleClearFilters = () => {
     setFilters({
