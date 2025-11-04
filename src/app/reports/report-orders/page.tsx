@@ -8,7 +8,6 @@ import Swal from "sweetalert2";
 import MainDatatable from "@/components/common/MainDatatable";
 import { ViewSvg, EditSvg } from "@/components/svgs/page";
 
-
 // Types
 interface Order {
   _id: string;
@@ -74,6 +73,7 @@ interface Filters {
   q: string;
   from: string;
   to: string;
+  dateRange: string;
   language: string;
   planName: string;
   status: string;
@@ -110,15 +110,42 @@ interface EditPayload {
   status?: "pending" | "paid" | "processing" | "delivered";
 }
 
-const API_BASE_URL = "https://api.acharyalavbhushan.com" 
-
+const API_BASE_URL = "https://api.acharyalavbhushan.com";
 
 const ReportOrders: React.FC = () => {
+  // Get today's date in DD/MM/YYYY format
+  const getTodayDate = () => moment().format("DD/MM/YYYY");
+  
+  // Calculate date ranges
+  const getDateRange = (range: string) => {
+    const today = moment();
+    switch (range) {
+      case "today":
+        return {
+          from: today.format("DD/MM/YYYY"),
+          to: today.format("DD/MM/YYYY")
+        };
+      case "weekly":
+        return {
+          from: today.subtract(7, 'days').format("DD/MM/YYYY"),
+          to: moment().format("DD/MM/YYYY")
+        };
+      case "monthly":
+        return {
+          from: today.subtract(30, 'days').format("DD/MM/YYYY"),
+          to: moment().format("DD/MM/YYYY")
+        };
+      default:
+        return { from: "", to: "" };
+    }
+  };
+
   // ---------- filters / paging ----------
   const [filters, setFilters] = useState<Filters>({
     q: "",
     from: "",
     to: "",
+    dateRange: "",
     language: "",
     planName: "",
     status: "paid",
@@ -162,7 +189,7 @@ const ReportOrders: React.FC = () => {
       });
 
       Object.entries(filters).forEach(([k, v]) => {
-        if (v !== "" && v !== null && v !== undefined) {
+        if (v !== "" && v !== null && v !== undefined && k !== "dateRange") {
           if (k === "from" && filters.from && !filters.to) {
             qs.set("from", filters.from);
             qs.set("to", filters.from);
@@ -206,10 +233,15 @@ const ReportOrders: React.FC = () => {
   // ---------- fetch stats ----------
   const fetchStats = async () => {
     try {
-      const qs = new URLSearchParams(filters as any);
+      const qs = new URLSearchParams();
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v !== "" && v !== null && v !== undefined && k !== "dateRange") {
+          qs.set(k, String(v));
+        }
+      });
+      
       const response = await fetch(
         `${API_BASE_URL}/api/admin/life-journey-orders/stats?${qs.toString()}`,
-        { headers: getAuthHeaders() }
       );
 
       if (!response.ok) return;
@@ -248,6 +280,29 @@ const ReportOrders: React.FC = () => {
     const target = e.target as HTMLInputElement;
     const { name, value, type, checked } = target;
     setPage(1);
+    
+    // Handle date range selection
+    if (name === "dateRange") {
+      const range = getDateRange(value);
+      setFilters((f) => ({
+        ...f,
+        dateRange: value,
+        from: range.from,
+        to: range.to,
+      }));
+      return;
+    }
+    
+    // If manual date is selected, clear dateRange
+    if (name === "from" || name === "to") {
+      setFilters((f) => ({
+        ...f,
+        dateRange: "",
+        [name]: value,
+      }));
+      return;
+    }
+    
     const v =
       type === "checkbox" ? checked : name === "limit" ? Number(value) : value;
     setFilters((f) => ({ ...f, [name]: v }));
@@ -403,7 +458,7 @@ const ReportOrders: React.FC = () => {
     }
   };
 
-  // ---------- Export (server CSV) ----------
+  // ---------- Export (client CSV) ----------
   const downloadCSV = () => {
     const headers = [
       "_id",
@@ -449,7 +504,7 @@ const ReportOrders: React.FC = () => {
           r.paymentTxnId,
           r.razorpayOrderId,
           r.paymentAt
-            ? moment.tz(r.paymentAt, "Asia/Kolkata").format("YYYY-MM-DD hh:mm a")
+            ? moment.tz(r.paymentAt, "Asia/Kolkata").format("DD/MM/YYYY hh:mm a")
             : "",
           r.astroConsultation ? "Yes" : "No",
           r.consultationDate || "",
@@ -461,10 +516,10 @@ const ReportOrders: React.FC = () => {
           r.utm_term || "",
           r.utm_content || "",
           r.createdAt
-            ? moment.tz(r.createdAt, "Asia/Kolkata").format("YYYY-MM-DD hh:mm a")
+            ? moment.tz(r.createdAt, "Asia/Kolkata").format("DD/MM/YYYY hh:mm a")
             : "",
           r.deletedAt
-            ? moment.tz(r.deletedAt, "Asia/Kolkata").format("YYYY-MM-DD hh:mm a")
+            ? moment.tz(r.deletedAt, "Asia/Kolkata").format("DD/MM/YYYY hh:mm a")
             : "",
         ]
           .map((field) => `"${String(field).replace(/"/g, '""')}"`)
@@ -488,7 +543,13 @@ const ReportOrders: React.FC = () => {
   const downloadServerCSV = async () => {
     try {
       const token = localStorage.getItem("access_token");
-      const qs = new URLSearchParams(filters as any);
+      const qs = new URLSearchParams();
+      Object.entries(filters).forEach(([k, v]) => {
+        if (v !== "" && v !== null && v !== undefined && k !== "dateRange") {
+          qs.set(k, String(v));
+        }
+      });
+      
       const res = await fetch(
         `${API_BASE_URL}/api/admin/life-journey-orders/export?${qs.toString()}`,
         {
@@ -514,6 +575,7 @@ const ReportOrders: React.FC = () => {
       });
     }
   };
+
   // ---------- columns ----------
   const columns = useMemo(
     () => [
@@ -582,7 +644,7 @@ const ReportOrders: React.FC = () => {
           row?.paymentAt
             ? moment
                 .tz(row.paymentAt, "Asia/Kolkata")
-                .format("YYYY-MM-DD hh:mm a")
+                .format("DD/MM/YYYY hh:mm a")
             : "—",
         width: "200px",
       },
@@ -592,7 +654,7 @@ const ReportOrders: React.FC = () => {
           row?.createdAt
             ? moment
                 .tz(row.createdAt, "Asia/Kolkata")
-                .format("YYYY-MM-DD hh:mm a")
+                .format("DD/MM/YYYY hh:mm a")
             : "—",
         width: "200px",
       },
@@ -653,11 +715,28 @@ const ReportOrders: React.FC = () => {
 
         {/* Filters */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
+          <TextField
+            select
+            SelectProps={{ native: true }}
+            name="dateRange"
+            value={filters.dateRange}
+            onChange={onChangeFilter}
+            label="Date Range"
+            size="small"
+            style={{ minWidth: '150px' }}
+          >
+            <option value="all">All</option>
+            <option value="today">Today</option>
+            <option value="weekly">Last 7 Days</option>
+            <option value="monthly">Last 30 Days</option>
+          </TextField>
+
           <input
             type="date"
             name="from"
             value={filters.from}
             onChange={onChangeFilter}
+            max={getTodayDate()}
             style={{
               padding: '8px 12px',
               border: '1px solid #ccc',
@@ -671,6 +750,7 @@ const ReportOrders: React.FC = () => {
             name="to"
             value={filters.to}
             onChange={onChangeFilter}
+            max={getTodayDate()}
             style={{
               padding: '8px 12px',
               border: '1px solid #ccc',
@@ -694,7 +774,6 @@ const ReportOrders: React.FC = () => {
             <option value="English">English</option>
             <option value="Hindi">Hindi</option>
           </TextField>
-
 
           <TextField
             select
@@ -810,6 +889,7 @@ const ReportOrders: React.FC = () => {
                 q: "",
                 from: "",
                 to: "",
+                dateRange: "",
                 language: "",
                 planName: "",
                 status: "",
@@ -906,7 +986,7 @@ const ReportOrders: React.FC = () => {
               ["whatsapp", "WhatsApp"],
               ["gender", "Gender"],
               ["reportLanguage", "Report Language"],
-              ["dateOfBirth", "DOB (YYYY-MM-DD)"],
+              ["dateOfBirth", "DOB (DD/MM/YYYY)"],
               ["timeOfBirth", "TOB (HH:mm)"],
               ["placeOfBirth", "Place of Birth"],
               ["placeOfBirthPincode", "POB Pincode"],

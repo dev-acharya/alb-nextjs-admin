@@ -195,16 +195,16 @@ export const RouteName = [
         name: "About Us",
         icon: <OtherRouteSvg />,
       },
-      {
-        path: "/displayHowToUse",
-        name: "How to use- ScreenShots",
-        icon: <OtherRouteSvg />,
-      },
-      {
-        path: "/displayHowToUseVideos",
-        name: "How to use - Videos",
-        icon: <OtherRouteSvg />,
-      },
+      // {
+      //   path: "/displayHowToUse",
+      //   name: "How to use- ScreenShots",
+      //   icon: <OtherRouteSvg />,
+      // },
+      // {
+      //   path: "/displayHowToUseVideos",
+      //   name: "How to use - Videos",
+      //   icon: <OtherRouteSvg />,
+      // },
     ],
   },
   {
