@@ -312,16 +312,7 @@ export default function Consultation() {
           
           <div className="flex gap-3 items-center">
             {/* Search Bar - Same styling as MainDatatable */}
-            <div className="flex justify-end rounded-sm">
-              <input
-                className="px-4 py-2 border border-red-500 text-red-500 rounded-2xl shadow-xs focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent w-full max-w-xs text-sm"
-                type='search'
-                value={searchText}
-                onChange={handleSearch}
-                placeholder='Search'
-              />
-            </div>
-
+          
             {/* CSV Download */}
             {consultationData.length > 0 && (
               <CSVLink 
