@@ -511,7 +511,6 @@ const MainDatatable: React.FC<MainDatatableProps> = ({
                   <div className="text-base font-medium text-gray-600">
                     <DownloadIcon />
                   </div>
-                  <DownloadSvg />
                 </CSVLink>
               ) : (
                 <div className="text-gray-400 text-base flex items-center gap-2 cursor-not-allowed opacity-50">
