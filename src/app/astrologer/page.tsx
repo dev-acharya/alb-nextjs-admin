@@ -341,7 +341,7 @@ export default function AstrologerPage() {
   const columns = useMemo(
     () => [
       {
-        name: "",
+        name: "S. No.",
         selector: (_row: any, index?: number) => (index !== undefined ? index + 1 : 0),
         width: "40px",
       },

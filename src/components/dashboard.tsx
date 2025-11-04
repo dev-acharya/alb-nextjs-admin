@@ -1,11 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { RechargeReport } from "@/components/charts/bar-chart";
+import { EarningChart, ServicesChart } from "@/components/charts/pie-chart";
+import { IndianRupee } from "@/utils/common-function";
 import { Grid } from "@mui/material";
 import moment from "moment";
-import { Color } from "@/assets/colors";
-import { IndianRupee } from "@/utils/common-function";
-import { ServicesChart, EarningChart } from "@/components/charts/pie-chart";
-import { RechargeReport } from "@/components/charts/bar-chart";
+import { useEffect, useState } from "react";
 import { AstrologerSvg, BlogSvg, CustomerSvg, EarningSvg, RechargeSvg, ReviewSvg, TodayAstrologerSvg, TodayCustomerSvg } from "./svgs/page";
 
 
@@ -79,55 +78,62 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
-
-  // Fetch recharge report
-  const fetchRechargeReport = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_recharge_report`, {
-        method: 'POST',
+// Fetch recharge report
+const fetchRechargeReport = async () => {
+  try {
+    const month = rechargeReportDate.getMonth() + 1;
+    const year = rechargeReportDate.getFullYear();
+    
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/recharge-per-day-history?month=${month}&year=${year}`,
+      {
+        method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          month: rechargeReportDate.getMonth() + 1,
-          year: rechargeReportDate.getFullYear()
-        }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setRechargeReportData(data.rechargeReport || data.data || {});
-        }
       }
-    } catch (error) {
-      console.error('Error fetching recharge report:', error);
+    );
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        setRechargeReportData(data.rechargeReport || data.data || {});
+      }
     }
-  };
+  } catch (error) {
+    console.error('Error fetching recharge report:', error);
+  }
+};
 
-  // Fetch earning report
-  const fetchEarningReport = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_earning_report`, {
-        method: 'POST',
+// Fetch earning report
+const fetchEarningReport = async () => {
+  try {
+    if (!earningChartDate) return;
+    
+    const month = (earningChartDate.getMonth() + 1).toString().padStart(2, '0');
+    const year = earningChartDate.getFullYear();
+    
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_admin_earning?month=${month}&year=${year}`,
+      {
+        method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          month: earningChartDate ? (earningChartDate.getMonth() + 1).toString().padStart(2, '0') : '',
-          year: earningChartDate?.getFullYear() || ''
-        }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success) {
-          setEarningReportData(data.earningReport || data.data || {});
-        }
       }
-    } catch (error) {
-      console.error('Error fetching earning report:', error);
+    );
+    
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        setEarningReportData(data.earningReport || data.data || {});
+      }
     }
-  };
+  } catch (error) {
+    console.error('Error fetching earning report:', error);
+  }
+};
 
   // Fetch service used report
   const fetchServiceUsedReport = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_service_used_report`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get_count_service_used`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });

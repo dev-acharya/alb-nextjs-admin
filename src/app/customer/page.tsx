@@ -320,91 +320,93 @@ export default function Customer() {
   };
 
   // Table Columns
-  const columns = [
-    { 
-      name: "", 
-      selector: (row: Customer) => customerData.indexOf(row) + 1, 
-      width: "40px" 
+const columns = [
+  { 
+    name: "", 
+    selector: (row: Customer) => customerData.indexOf(row) + 1, 
+    width: "70px" 
+  },
+  { 
+    name: "Customer Name", 
+    selector: (row: Customer) => row?.customerName ? row.customerName : 'N/A',
+    width: "170px"
+  },
+  { 
+    name: "Email", 
+    selector: (row: Customer) => row?.email ? row.email : 'N/A',
+     width: '200px'
+  },
+  { 
+    name: "Contact", 
+    selector: (row: Customer) => row?.phoneNumber ,
+    width: '130px'
+  },
+  { 
+    name: "Wallet", 
+    selector: (row: Customer) => IndianRupee(row?.wallet_balance) || 'N/A', 
+    width: '130px' 
+  },
+  { 
+    name: "D.O.B", 
+    selector: (row: Customer) => row?.dateOfBirth ? moment(row.dateOfBirth).format('DD/MM/YYYY') : 'N/A' ,
+    width: '120px'
+  },
+  { 
+    name: "T.O.B", 
+    selector: (row: Customer) => {
+      const val = row?.timeOfBirth;
+      if (!val) return 'N/A';
+      try {
+        const formatted = moment(val, ['HH:mm', 'hh:mm:ss']).format('hh:mm A');
+        return formatted !== 'Invalid date' ? formatted : 'N/A';
+      } catch {
+        return 'N/A';
+      }
     },
-    { 
-      name: "Customer Name", 
-      selector: (row: Customer) => row?.customerName ? row.customerName : 'N/A',
-      width: "170px"
-    },
-    { 
-      name: "Email", 
-      selector: (row: Customer) => row?.email ? row.email : 'N/A',
-    },
-    { 
-      name: "Contact", 
-      selector: (row: Customer) => row?.phoneNumber ,
-      width: '130px'
-    },
-    { 
-      name: "Wallet", 
-      selector: (row: Customer) => IndianRupee(row?.wallet_balance) || 'N/A', 
-      width: '130px' 
-    },
-    { 
-      name: "D.O.B", 
-      selector: (row: Customer) => row?.dateOfBirth ? moment(row.dateOfBirth).format('DD/MM/YYYY') : 'N/A' ,
-      width: '120px'
-    },
-    { 
-      name: "T.O.B", 
-      selector: (row: Customer) => {
-        const val = row?.timeOfBirth;
-        if (!val) return 'N/A';
-        try {
-          const formatted = moment(val, ['HH:mm', 'hh:mm:ss']).format('hh:mm A');
-          return formatted !== 'Invalid date' ? formatted : 'N/A';
-        } catch {
-          return 'N/A';
-        }
-      },
-    },
-    { 
-      name: 'Status', 
-      selector: (row: Customer) => (
+     width: '120px'
+  },
+  { 
+    name: 'Status', 
+    selector: (row: Customer) => (
+      <div 
+        className="cursor-pointer text-center"
+        onClick={() => handleStatusToggle(row)}
+        style={{ display: 'flex', justifyContent: 'center' }}
+      >
+        {!row?.banned_status ? <SwitchOnSvg /> : <SwitchOffSvg />}
+      </div>
+    ), 
+    width: "140px",
+    center: "true"  // Changed from center: true to center: "true"
+  },
+  {
+    name: 'Action',
+    cell: (row: Customer) => (
+      <div className="flex gap-5 justify-center items-center">
         <div 
-          className="cursor-pointer text-center"
-          onClick={() => handleStatusToggle(row)}
-          style={{ display: 'flex', justifyContent: 'center' }}
+          onClick={() => router.push(`/customer/view-customer?id=${row._id}`)} 
+          className="cursor-pointer transition-colors"
         >
-          {!row?.banned_status ? <SwitchOnSvg /> : <SwitchOffSvg />}
+          <ViewSvg/>
         </div>
-      ), 
-      width: "140px",
-      center: true
-    },
-    {
-      name: 'Action',
-      cell: (row: Customer) => (
-        <div className="flex gap-5 justify-center items-center">
-          <div 
-            onClick={() => router.push(`/customer/view-customer?id=${row._id}`)} 
-            className="cursor-pointer transition-colors"
-          >
-            <ViewSvg/>
-          </div>
-          <div 
-            onClick={() => handleEditCustomer(row)} 
-            className="cursor-pointer transition-colors"
-          >
-            <EditSvg/>
-          </div>
-          <div 
-            onClick={() => handleWalletModalOpen(row._id)} 
-            className="cursor-pointer transition-colors"
-          >
-            <WalletSvg/>
-          </div>
+        <div 
+          onClick={() => handleEditCustomer(row)} 
+          className="cursor-pointer transition-colors"
+        >
+          <EditSvg/>
         </div>
-      ),
-      width: "150px",
-      center: true
-    },
-  ];
+        <div 
+          onClick={() => handleWalletModalOpen(row._id)} 
+          className="cursor-pointer transition-colors"
+        >
+          <WalletSvg/>
+        </div>
+      </div>
+    ),
+    width: "150px",
+    center: "true"  // Changed from center: true to center: "true"
+  },
+];
 
   return (
     <>
