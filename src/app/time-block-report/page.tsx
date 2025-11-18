@@ -8,16 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Calendar, Ban } from 'lucide-react';
 
 const reportPrefixes = [
-  { value: '#LJR-', label: 'Life Journey Report (#LJR-)' },
-  { value: '#LCR-', label: 'Life Changing Report (#LCR-)' },
-  { value: '#KM-', label: 'Kundli Matching Report (#KM-)' },
-  { value: '#MCO-', label: 'Maha Combo Offer (#MCO-)' },
+  { value: '#LJR-', label: 'Life Journey Report' },
+  { value: '#LCR-', label: 'Life Changing Report' },
+  { value: '#KM-', label: 'Kundli Matching Report' },
+  { value: '#LR-', label: 'Love Report' },
 ];
 
 export default function BlockedSlotsManagement() {
   const getTomorrowDate = () => {
     const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setDate(tomorrow.getDate() + 2);
     return tomorrow.toISOString().split('T')[0];
   };
 
@@ -31,7 +31,7 @@ export default function BlockedSlotsManagement() {
     const dates = [];
     for (let i = 0; i < 10; i++) {
       const date = new Date();
-      date.setDate(date.getDate() + i + 1);
+      date.setDate(date.getDate() + i + 2); // Start from 2 days after today
       dates.push({
         date: date.toISOString().split('T')[0],
         label: date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
@@ -278,7 +278,7 @@ export default function BlockedSlotsManagement() {
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
+                  min={getTomorrowDate()}
                   className="w-full px-3 py-2 border border-[#661726]/30 rounded-md focus:outline-none focus:ring-2 focus:ring-[#EF4444]"
                 />
               </div>
@@ -344,67 +344,61 @@ export default function BlockedSlotsManagement() {
                   }`}
                 >
                 <div className="space-y-3">
-  {/* Time and Button inline */}
-  <div className="flex items-center justify-between">
-    <p className="font-bold text-[#2F211D] text-lg mb-0">
-      {slot.time}
-    </p>
-    <div className="ml-auto">
-      {slot.isBlocked ? (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => handleUnblock(slot.blockedSlotId, slot.time)}
-          disabled={isProcessing || !slot.isBlocked}
-          className={`${
-            !slot.isBlocked
-              ? 'bg-gray-400 cursor-not-allowed text-white'
-              : 'bg-green-500 hover:bg-green-600 text-white border-none'
-          }`}
-        >
-          {isProcessing ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            'Unblock'
-          )}
-        </Button>
-      ) : (
-        <Button
-          size="sm"
-          onClick={() => handleBlock(slot.time)}
-          disabled={isProcessing || slot.isBlocked}
-          className={`${
-            slot.isBlocked
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-red-500 hover:bg-red-600 text-white'
-          }`}
-        >
-          {isProcessing ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            'Block'
-          )}
-        </Button>
-      )}
-    </div>
-  </div>
+                {/* Time and Button inline */}
+                <div className="flex items-center justify-between">
+                  <p className="font-bold text-[#2F211D] text-lg mb-0">
+                    {slot.time}
+                  </p>
+                  <div className="ml-auto">
+                    {slot.isBlocked ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUnblock(slot.blockedSlotId, slot.time)}
+                        disabled={isProcessing || !slot.isBlocked}
+                        className={`${
+                          !slot.isBlocked
+                            ? 'bg-gray-400 cursor-not-allowed text-white'
+                            : 'bg-green-500 hover:bg-green-600 text-white border-none'
+                        }`}
+                      >
+                        {isProcessing ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          'Unblock'
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={() => handleBlock(slot.time)}
+                        disabled={isProcessing || slot.isBlocked}
+                        className={`${
+                          slot.isBlocked
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-red-500 hover:bg-red-600 text-white'
+                        }`}
+                      >
+                        {isProcessing ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          'Block'
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
 
-  {/* BLOCKED badge */}
-  {/* {slot.isBlocked && (
-    <p className="text-xs text-red-600 font-medium">
-      BLOCKED
-    </p>
-  )} */}
 
-  {/* Reason if blocked */}
-  {slot.isBlocked && slot.reason && (
-    <div className="pt-2 border-t border-red-200">
-      <p className="text-xs text-[#7A665D]">
-        <span className="font-medium">Reason:</span> {slot.reason}
-      </p>
-    </div>
-  )}
-</div>
+                {/* Reason if blocked */}
+                {slot.isBlocked && slot.reason && (
+                  <div className="pt-2 border-t border-red-200">
+                    <p className="text-xs text-[#7A665D]">
+                      <span className="font-medium">Reason:</span> {slot.reason}
+                    </p>
+                  </div>
+                )}
+              </div>
                 </Card>
               );
             })}
