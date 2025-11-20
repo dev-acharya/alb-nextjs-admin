@@ -3,8 +3,6 @@ import React, { useEffect, useState } from "react";
 import moment from "moment";
 import { IndianRupee, secondsToHMS } from "@/utils/common-function";
 import MainDatatable from "@/components/common/MainDatatable";
-import { TableColumn } from "react-data-table-component";
-import { base_url, get_video_call_history_by_astrologer_id } from "@/lib/api-routes";
 
 interface VideoCallHistoryData {
   _id: string;
@@ -86,7 +84,7 @@ const VideoCallHistory: React.FC<VideoCallHistoryProps> = ({ astrologerId }) => 
       
       try {
         setIsLoading(true);
-        const response = await fetch(`${base_url}${get_video_call_history_by_astrologer_id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/astrologer_chat_history`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
