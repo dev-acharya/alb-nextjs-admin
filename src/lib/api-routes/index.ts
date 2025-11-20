@@ -1,8 +1,21 @@
 // export let base_url: string, img_url: string, api_url: string;
+export const base_url = process.env.NEXT_PUBLIC_API_URL 
+  ? (process.env.NEXT_PUBLIC_API_URL.endsWith('/') 
+      ? process.env.NEXT_PUBLIC_API_URL 
+      : `${process.env.NEXT_PUBLIC_API_URL}/`)
+  : "http://localhost:3003/";
 
-   export const  base_url = "http://localhost:3003/";
-   export const  img_url = "https://api.acharyalavbhushan.com/uploads/";
-   export  const api_url = "http://localhost:3003/api/";
+export const img_url = process.env.NEXT_PUBLIC_IMAGE_URL
+  ? (process.env.NEXT_PUBLIC_IMAGE_URL.endsWith('/') 
+      ? process.env.NEXT_PUBLIC_IMAGE_URL 
+      : `${process.env.NEXT_PUBLIC_IMAGE_URL}/`)
+  : "https://api.acharyalavbhushan.com/";
+
+export const api_url = process.env.NEXT_PUBLIC_API_URL 
+  ? (process.env.NEXT_PUBLIC_API_URL.endsWith('/') 
+      ? `${process.env.NEXT_PUBLIC_API_URL}api/` 
+      : `${process.env.NEXT_PUBLIC_API_URL}/api/`)
+  : "http://localhost:3003/api/";
 
 
 //! Dashboard
@@ -265,7 +278,7 @@ export const get_admin_earnig_history = 'admin/get_admin_earnig_history'
 export const get_wallet_payments = 'admin/get_wallet_payments'
 
 export const create_language = 'admin/create_language'
-export const get_language = 'admin/get_language'
+export const get_language = 'api/admin/get_language'
 export const update_language = 'admin/update_language'
 export const delete_language = 'admin/delete_language'
 

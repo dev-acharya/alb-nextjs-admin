@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import moment from 'moment';
-import { base_url, get_astrologer_by_id, get_astrologer_duration_by_id } from '@/lib/api-routes';
+import { base_url, get_astrologer_by_id, get_astrologer_duration_by_id , img_url } from '@/lib/api-routes';
 import { IndianRupee } from '@/utils/common-function';
 import Profile from '@/components/view-astrologer/Profile';
 import ChatHistory from '@/components/view-astrologer/Chat-history';
@@ -207,7 +207,7 @@ export default function ViewAstrologer() {
           {/* Profile Section */}
           <div className="flex items-center gap-5">
             <img
-              src={base_url + profileImage}
+              src={img_url + profileImage}
               alt={astrologerName}
               className="w-24 h-24 rounded-full border border-gray-300 object-cover"
             />

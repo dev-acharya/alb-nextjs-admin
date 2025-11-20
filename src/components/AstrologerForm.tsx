@@ -6,6 +6,7 @@ import { Color } from '@/assets/colors';
 import { calculateAge, get_date_value } from '@/utils/common-function';
 import {
   api_url,
+  img_url,
   get_skill,
   get_main_expertise,
   get_remedies,
@@ -101,8 +102,8 @@ export default function AstrologerForm({ mode, initialData, onSnack }: Props) {
     alternateNumber: initialData?.alternateNumber || '',
     country_phone_code: initialData?.country_phone_code || '91',
     email: initialData?.email || '',
-    password: '',
-    confirm_password: '',
+    password: initialData?.password || '',
+    confirm_password: initialData?.password || '',
     gender: initialData?.gender || '',
     dateOfBirth: initialData?.dateOfBirth ? moment(initialData.dateOfBirth).format('YYYY-MM-DD') : '',
     experience: initialData?.experience || '',
@@ -169,32 +170,96 @@ export default function AstrologerForm({ mode, initialData, onSnack }: Props) {
     initialData?.mainExpertise?.map((e: any) => e._id) || []
   );
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(
-    initialData?.language?.map((l: any) => l.languageName) || []
+    Array.isArray(initialData?.language) ? initialData.language : []
   );
 
+
+  // Add after line ~183 where other states are declared
+const [countries] = useState(Country.getAllCountries());
+const [states, setStates] = useState<any[]>([]);
+const [cities, setCities] = useState<any[]>([]);
+
+  
   const [image, setImage] = useState<{ file: string; bytes: File | null }>({
-    file: initialData?.profileImage ? `${api_url}${initialData.profileImage}` : '',
+    file: initialData?.profileImage ? `${img_url}${initialData.profileImage}` : '',
     bytes: null,
   });
   const [bankProof, setBankProof] = useState<{ file: string; bytes: File | null }>({
-    file: initialData?.bank_proof_image ? `${api_url}${initialData.bank_proof_image}` : '',
+    file: initialData?.bank_proof_image ? `${img_url}${initialData.bank_proof_image}` : '',
     bytes: null,
   });
   const [idProof, setIdProof] = useState<{ file: string; bytes: File | null }>({
-    file: initialData?.id_proof_image ? `${api_url}${initialData.id_proof_image}` : '',
+    file: initialData?.id_proof_image ? `${img_url}${initialData.id_proof_image}` : '',
     bytes: null,
   });
   const [bulkImages, setBulkImages] = useState<{ file: string; bytes: File | null }[]>(
-    initialData?.multipleImages?.map((img: string) => ({ file: `${api_url}${img}`, bytes: null })) || []
+    initialData?.multipleImages?.map((img: string) => ({ file: `${img_url}${img}`, bytes: null })) || []
   );
   const [bulkVideos, setBulkVideos] = useState<{ file: string; bytes: File | null }[]>(
-    initialData?.multipleVideos?.map((vid: string) => ({ file: `${api_url}${vid}`, bytes: null })) || []
+    initialData?.multipleVideos?.map((vid: string) => ({ file: `${img_url}${vid}`, bytes: null })) || []
   );
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<any>({ name: 'India', isoCode: 'IN' });
   const [selectedState, setSelectedState] = useState<any>({});
+
+  // Initialize country, state, city on mount (in edit mode)
+useEffect(() => {
+  if (initialData?.country) {
+    const country = countries.find((c) => c.name === initialData.country);
+    if (country) {
+      setSelectedCountry(country);
+      const countryStates = State.getStatesOfCountry(country.isoCode);
+      setStates(countryStates);
+      
+      if (initialData?.state) {
+        const state = countryStates.find((s: any) => s.name === initialData.state);
+        if (state) {
+          setSelectedState(state);
+          const stateCities = City.getCitiesOfState(country.isoCode, state.isoCode);
+          setCities(stateCities);
+        }
+      }
+    }
+  }
+}, [initialData, countries]);
+
+// Update states when country changes
+useEffect(() => {
+  if (form.country) {
+    const country = countries.find((c) => c.name === form.country);
+    if (country) {
+      setSelectedCountry(country);
+      const countryStates = State.getStatesOfCountry(country.isoCode);
+      setStates(countryStates);
+      
+      // Reset state and city when country changes
+      if (form.country !== initialData?.country) {
+        setForm((prev) => ({ ...prev, state: '', city: '' }));
+        setSelectedState(null);
+        setCities([]);
+      }
+    }
+  }
+}, [form.country, countries]);
+
+// Update cities when state changes
+useEffect(() => {
+  if (form.state && selectedCountry) {
+    const state = states.find((s) => s.name === form.state);
+    if (state) {
+      setSelectedState(state);
+      const stateCities = City.getCitiesOfState(selectedCountry.isoCode, state.isoCode);
+      setCities(stateCities);
+      
+      // Reset city when state changes
+      if (form.state !== initialData?.state) {
+        setForm((prev) => ({ ...prev, city: '' }));
+      }
+    }
+  }
+}, [form.state, selectedCountry, states]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -264,14 +329,6 @@ export default function AstrologerForm({ mode, initialData, onSnack }: Props) {
     setForm(prev => ({ ...prev, [name]: value }));
     setErrors(prev => ({ ...prev, [name]: '' }));
 
-    if (name === 'country') {
-      const country = Country.getAllCountries().find((c: any) => c.name === value);
-      setSelectedCountry(country || { name: 'India', isoCode: 'IN' });
-    }
-    if (name === 'state') {
-      const state = State.getStatesOfCountry(selectedCountry.isoCode).find((s: any) => s.name === value);
-      setSelectedState(state || {});
-    }
   };
 
   const handleMultiSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -322,8 +379,22 @@ export default function AstrologerForm({ mode, initialData, onSnack }: Props) {
     if (!form.astrologerName) newErrors.astrologerName = 'Name required';
     if (!emailRegex.test(form.email)) newErrors.email = 'Invalid email';
     if (!mobileRegex.test(form.phoneNumber)) newErrors.phoneNumber = '10-digit mobile required';
-    if (!isEdit && !form.password) newErrors.password = 'Password required';
-    if (form.password !== form.confirm_password) newErrors.confirm_password = 'Passwords must match';
+    // Only require password for new astrologers
+if (!isEdit) {
+  if (!form.password) {
+    newErrors.password = 'Password required';
+  } else if (form.password.length < 6) {
+    newErrors.password = 'Password must be at least 6 characters';
+  }
+  
+  if (!form.confirm_password) {
+    newErrors.confirm_password = 'Please confirm password';
+  }
+}
+
+// Only validate password match if password is provided
+    if (form.password && form.password !== form.confirm_password) {newErrors.confirm_password = 'Passwords do not match';}
+
     if (!form.dateOfBirth) newErrors.dateOfBirth = 'DOB required';
     if (calculateAge(form.dateOfBirth) < 18) newErrors.dateOfBirth = 'Must be 18+';
     if (!form.experience) newErrors.experience = 'Experience required';
@@ -342,9 +413,14 @@ export default function AstrologerForm({ mode, initialData, onSnack }: Props) {
 
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => {
-      if (Array.isArray(value)) value.forEach(v => formData.append(`${key}[]`, v));
-      else formData.append(key, value);
-    });
+  // Skip empty passwords in edit mode
+  if (isEdit && (key === 'password' || key === 'confirm_password') && !value) {
+    return;
+  }
+  if (Array.isArray(value)) value.forEach(v => formData.append(`${key}[]`, v));
+  else formData.append(key, value);
+});
+
 
     if (image.bytes) formData.append('profileImage', image.bytes);
     if (bankProof.bytes) formData.append('bank_proof_image', bankProof.bytes);
@@ -509,73 +585,132 @@ export default function AstrologerForm({ mode, initialData, onSnack }: Props) {
           </select>
         </div>
 
-        {!isEdit && (
-          <>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Password <span className="text-red-500">*</span>
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  className={`block w-full rounded-md border ${errors.password ? 'border-red-500' : 'border-gray-300'} px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  {showPassword ? (
-                    <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  ) : (
-                    <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
-            </div>
+      <div>
+  <label className="block text-sm font-medium text-gray-700">
+    Password {!isEdit && <span className="text-red-500">*</span>}
+    {/* {isEdit && <span className="text-xs text-gray-500 ml-2">(leave blank to keep current)</span>} */}
+  </label>
+  <div className="mt-1 relative">
+    <input
+      type={showPassword ? 'text' : 'password'}
+      name="password"
+      value={form.password}
+      onChange={handleChange}
+      placeholder={isEdit ? 'Leave blank to keep current password' : 'Enter password'}
+      className={`block w-full rounded-md border ${
+        errors.password ? 'border-red-500' : 'border-gray-300'
+      } px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+    />
+    <button
+      type="button"
+      onClick={() => setShowPassword(!showPassword)}
+      className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer hover:text-gray-700"
+    >
+      {showPassword ? (
+        // Eye Open Icon (password visible)
+        <svg 
+          className="h-5 w-5 text-gray-500" 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          stroke="currentColor"
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+          />
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" 
+          />
+        </svg>
+      ) : (
+        // Eye Closed Icon (password hidden)
+        <svg 
+          className="h-5 w-5 text-gray-500" 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          stroke="currentColor"
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" 
+          />
+        </svg>
+      )}
+    </button>
+  </div>
+  {errors.password && <p className="text-red-600 text-sm mt-1">{errors.password}</p>}
+</div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Confirm Password <span className="text-red-500">*</span>
-              </label>
-              <div className="mt-1 relative">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  name="confirm_password"
-                  value={form.confirm_password}
-                  onChange={handleChange}
-                  className={`block w-full rounded-md border ${errors.confirm_password ? 'border-red-500' : 'border-gray-300'} px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  {showConfirmPassword ? (
-                    <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  ) : (
-                    <svg className="h-5 w-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              {errors.confirm_password && <p className="text-red-600 text-sm mt-1">{errors.confirm_password}</p>}
-            </div>
-          </>
-        )}
+<div>
+  <label className="block text-sm font-medium text-gray-700">
+    Confirm Password {!isEdit && <span className="text-red-500">*</span>}
+  </label>
+  <div className="mt-1 relative">
+    <input
+      type={showConfirmPassword ? 'text' : 'password'}
+      name="confirm_password"
+      value={form.confirm_password}
+      onChange={handleChange}
+      placeholder={isEdit ? 'Leave blank to keep current password' : 'Confirm password'}
+      className={`block w-full rounded-md border ${
+        errors.confirm_password ? 'border-red-500' : 'border-gray-300'
+      } px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+    />
+    <button
+      type="button"
+      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+      className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer hover:text-gray-700"
+    >
+      {showConfirmPassword ? (
+        // Eye Open Icon
+        <svg 
+          className="h-5 w-5 text-gray-500" 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          stroke="currentColor"
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+          />
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" 
+          />
+        </svg>
+      ) : (
+        // Eye Closed Icon
+        <svg 
+          className="h-5 w-5 text-gray-500" 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          stroke="currentColor"
+        >
+          <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            strokeWidth={2} 
+            d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" 
+          />
+        </svg>
+      )}
+    </button>
+  </div>
+  {errors.confirm_password && <p className="text-red-600 text-sm mt-1">{errors.confirm_password}</p>}
+</div>
+
+
 
         <div>
           <label className="block text-sm font-medium text-gray-700">
@@ -623,22 +758,43 @@ export default function AstrologerForm({ mode, initialData, onSnack }: Props) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">
-            Select Language <span className="text-red-500">*</span>
-          </label>
-          <select
-            name="language"
-            multiple
-            value={selectedLanguages}
-            onChange={handleMultiSelectChange}
-            className={`mt-1 block w-full rounded-md border ${errors.language ? 'border-red-500' : 'border-gray-300'} px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 h-32`}
-          >
-            {languages.map(l => (
-              <option key={l._id} value={l.languageName}>{l.languageName}</option>
-            ))}
-          </select>
-          {errors.language && <p className="text-red-600 text-sm mt-1">{errors.language}</p>}
-        </div>
+  <label className="block text-sm font-medium text-gray-700">
+    Select Language <span className="text-red-500">*</span>
+  </label>
+  <select
+    name="language"
+    multiple
+    value={selectedLanguages}
+    onChange={handleMultiSelectChange}
+    className={`mt-1 block w-full rounded-md border ${errors.language ? 'border-red-500' : 'border-gray-300'} px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 h-32`}
+  >
+    {languages
+      .sort((a, b) => {
+        const aSelected = selectedLanguages.includes(a.languageName);
+        const bSelected = selectedLanguages.includes(b.languageName);
+        if (aSelected && !bSelected) return -1;
+        if (!aSelected && bSelected) return 1;
+        return a.languageName.localeCompare(b.languageName);
+      })
+      .map(l => (
+        <option 
+          key={l._id} 
+          value={l.languageName}
+          className={selectedLanguages.includes(l.languageName) ? 'bg-blue-100 font-semibold' : ''}
+        >
+          {l.languageName} {selectedLanguages.includes(l.languageName) ? '✓' : ''}
+        </option>
+      ))
+    }
+  </select>
+  {selectedLanguages.length > 0 && (
+    <p className="text-sm text-gray-600 mt-1">
+      Selected: {selectedLanguages.join(', ')}
+    </p>
+  )}
+  {errors.language && <p className="text-red-600 text-sm mt-1">{errors.language}</p>}
+</div>
+
       </div>
 
       {/* Address */}
@@ -684,7 +840,7 @@ export default function AstrologerForm({ mode, initialData, onSnack }: Props) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">City *</label>
+          <label className="block text-sm font-medium text-gray-700">City</label>
           <select
             name="city"
             value={form.city}
@@ -692,11 +848,14 @@ export default function AstrologerForm({ mode, initialData, onSnack }: Props) {
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Select City</option>
-            {City.getCitiesOfState(selectedState.countryCode || 'IN', selectedState.isoCode || '')?.map((c: any) => (
-              <option key={c.name} value={c.name}>{c.name}</option>
+            {cities.map((c: any) => (
+              <option key={c.name} value={c.name}>
+                {c.name}
+              </option>
             ))}
           </select>
         </div>
+
 
         <div>
           <label className="block text-sm font-medium text-gray-700">Pin Code</label>
