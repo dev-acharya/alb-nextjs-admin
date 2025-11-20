@@ -214,11 +214,8 @@ const handleEndDateChange = (newDate: string) => {
   // Table Columns
  // Table Columns
   const columns = [
-    {
-      name: "",
-      selector: (row: ConsultationSlot) => slotsData.indexOf(row) + 1,
-      width: "40px"
-    },
+
+    { name: "", selector: (_: ConsultationSlot, idx?: number) => (idx || 0) + 1, width: "70px" },
     {
       name: "Order ID",
       selector: (row: ConsultationSlot) => row?.orderID || 'N/A',
