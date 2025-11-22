@@ -446,7 +446,7 @@ export default function BlockedSlotsManagement() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Report Type */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 mb-2  flex items-center gap-2">
                   <span className="text-[#EF4444]">1.</span> Report Type
                 </label>
                 <Select value={selectedPrefix} onValueChange={(value) => {
@@ -468,7 +468,7 @@ export default function BlockedSlotsManagement() {
 
               {/* Date */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 mb-2  flex items-center gap-2">
                   <span className="text-[#EF4444]">2.</span> Select Date
                 </label>
                 <input
@@ -482,7 +482,7 @@ export default function BlockedSlotsManagement() {
 
               {/* Astrologer */}
               <div>
-                <label className="text-sm font-medium text-gray-700 mb-2 block flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 mb-2  flex items-center gap-2">
                   <span className="text-[#EF4444]">3.</span> Astrologer (Optional)
                 </label>
                 <Select 
@@ -543,7 +543,7 @@ export default function BlockedSlotsManagement() {
             </div>
 
             {/* Info Banner */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start gap-3">
                 <div className="text-blue-600 mt-0.5">ℹ️</div>
                 <div className="flex-1">
@@ -559,7 +559,7 @@ export default function BlockedSlotsManagement() {
                   </p>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </Card>
 
