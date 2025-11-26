@@ -114,11 +114,24 @@ export const RouteName = [
   //     },
   //   ],
   // },
-  // {
-  //   path: "/consultation",
-  //   name: "Consultation",
-  //   icon: <SkillRouteSvg />,
-  // },
+  {
+    path: "/consultation",
+    name: "Consultation",
+    icon: <SkillRouteSvg />,
+  },
+
+  {
+    name: "Log",
+    icon: <NotificationRouteSvg />,
+    subRoutes: [
+      {
+        path: "/logs/list-of-logs",
+        name: "List of logs",
+        icon: <OtherRouteSvg />,
+      },
+      
+    ],
+  },
   // {
   //   path: "/skill",
   //   name: "Skill",
