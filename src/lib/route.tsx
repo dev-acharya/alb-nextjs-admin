@@ -119,6 +119,23 @@ export const RouteName = [
   //   name: "Consultation",
   //   icon: <SkillRouteSvg />,
   // },
+  {
+    name: "Consultation",
+    icon: <NotificationRouteSvg />,
+    subRoutes: [
+      {
+        path: "/consultation",
+        name: "List of Consultations",
+        icon: <SkillRouteSvg />
+      },
+      {
+        path: "/logs/list-of-logs",
+        name: "List of logs",
+        icon: <OtherRouteSvg />,
+      },
+    ],
+  },
+
   // {
   //   path: "/skill",
   //   name: "Skill",
@@ -211,16 +228,16 @@ export const RouteName = [
   //       name: "About Us",
   //       icon: <OtherRouteSvg />,
   //     },
-  //     // {
-  //     //   path: "/displayHowToUse",
-  //     //   name: "How to use- ScreenShots",
-  //     //   icon: <OtherRouteSvg />,
-  //     // },
-  //     // {
-  //     //   path: "/displayHowToUseVideos",
-  //     //   name: "How to use - Videos",
-  //     //   icon: <OtherRouteSvg />,
-  //     // },
+  //     {
+  //       path: "/displayHowToUse",
+  //       name: "How to use- ScreenShots",
+  //       icon: <OtherRouteSvg />,
+  //     },
+  //     {
+  //       path: "/displayHowToUseVideos",
+  //       name: "How to use - Videos",
+  //       icon: <OtherRouteSvg />,
+  //     },
   //   ],
   // },
   // {

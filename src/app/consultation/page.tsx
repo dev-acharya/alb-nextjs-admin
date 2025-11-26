@@ -31,6 +31,7 @@ interface Consultation {
   fullName?: string;
   customerId?: Customer;
   mobileNumber?: string;
+  gender?:string;
   dateOfBirth?: string;
   timeOfBirth?: string;
   placeOfBirth?: string;
@@ -39,6 +40,9 @@ interface Consultation {
   consultationType?: string;
   consultationTopic?: string;
   paymentDetails?: PaymentDetails;
+  reviewed?: string;
+  meetingId?: string;
+  meetingPasscode?: string;
   status?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -137,8 +141,8 @@ export default function Consultation() {
     status: '',
     customerName: '',
     astrologerName: '',
-    startDate: '',
-    endDate: ''
+    startDate: moment().format('YYYY-MM-DD'), // Set to today
+  endDate: moment().format('YYYY-MM-DD') 
   });
 
   const fetchConsultations = async () => {
@@ -268,26 +272,7 @@ export default function Consultation() {
       ),
       width: '120px'
     },
-    {
-      name: 'Action',
-      cell: (row: Consultation) => (
-        <div className="flex gap-3">
-          <button 
-            onClick={() => router.push(`/consultation/view-consultation?id=${row._id}`)} 
-            className="text-blue-600 hover:underline text-sm"
-          >
-            View
-          </button>
-          <button 
-            onClick={() => router.push(`/consultation/edit-consultation?id=${row._id}`)} 
-            className="text-green-600 hover:underline text-sm"
-          >
-            Edit
-          </button>
-        </div>
-      ),
-      width: '120px'
-    },
+
   ];
 
   const handleClearFilters = () => {
@@ -295,11 +280,37 @@ export default function Consultation() {
       status: '',
       customerName: '',
       astrologerName: '',
-      startDate: '',
-      endDate: ''
+      startDate: moment().format('YYYY-MM-DD'), // Reset to today
+    endDate: moment().format('YYYY-MM-DD')
     });
     setSearchText('');
   };
+
+  // Add this function before the return statement
+const prepareCSVData = () => {
+  return consultationData.map((item, index) => ({
+    'Astrologer': item?.astrologerId?.astrologerName || 'N/A',
+    'Customer': item?.fullName || 'N/A',
+    'Email': item?.customerId?.email || 'N/A',
+    'Mobile': item?.mobileNumber || 'N/A',
+    'Gender': item?.gender || '',
+    'Date of Birth': item?.dateOfBirth ? `\t${item.dateOfBirth}` : 'N/A',
+    'Time of Birth': item?.timeOfBirth || 'N/A',
+    'Place of Birth': item?.placeOfBirth || 'N/A',
+    'Date': item?.date ? `\t${moment(item.date).format('YYYY-MM-DD')}` : 'N/A',
+    'Slot From': item?.slotId?.fromTime || 'N/A',
+    'Slot To': item?.slotId?.toTime || 'N/A',
+    'Consultation Type': item?.consultationType || 'N/A',
+    'Consultation Topic': item?.consultationTopic || 'N/A',
+    'Payment Amount': item?.paymentDetails?.paymentAmount || 'N/A',
+    'Payment Method': item?.paymentDetails?.paymentMethod || 'N/A',
+    'Status': item?.status || 'N/A',
+    'Meeting ID': item?.meetingId || 'N/A',
+    'Meeting Passcode': item?.meetingPasscode || 'N/A',
+    'Created At': item?.createdAt ? `\t${moment(item.createdAt).format('YYYY-MM-DD HH:mm:ss')}` : '',
+    'Updated At': item?.updatedAt ? `\t${moment(item.updatedAt).format('YYYY-MM-DD HH:mm:ss')}` : '',
+  }));
+};
 
   return (
     <div className="p-5 bg-white rounded-lg border border-gray-200">
@@ -317,7 +328,7 @@ export default function Consultation() {
             {consultationData.length > 0 && (
               <CSVLink 
                 filename="Consultation_Bookings.csv" 
-                data={consultationData} 
+                data={prepareCSVData()} 
                 className="text-gray-800 text-base no-underline flex items-center gap-2 cursor-pointer hover:text-gray-600 transition-colors"
               >
                 <DownloadIcon className="text-gray-600" />

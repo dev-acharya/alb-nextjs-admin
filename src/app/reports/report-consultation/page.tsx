@@ -14,6 +14,9 @@ const reportPrefixes = [
   { value: '#LCR-', label: 'Life Changing Report' },
   { value: '#KM-', label: 'Kundli Matching Report' },
   { value: '#LR-', label: 'Love Report' },
+  { value: '#VR-', label: 'Name & Number Report' },
+  // { value: '#BNR-', label: 'Baby Name Report' },
+  // { value: '#CR-', label: 'Career Report' },
 ];
 
 const dateRangeOptions = [
@@ -214,11 +217,8 @@ const handleEndDateChange = (newDate: string) => {
   // Table Columns
  // Table Columns
   const columns = [
-    {
-      name: "",
-      selector: (row: ConsultationSlot) => slotsData.indexOf(row) + 1,
-      width: "40px"
-    },
+
+    { name: "", selector: (_: ConsultationSlot, idx?: number) => (idx || 0) + 1, width: "70px" },
     {
       name: "Order ID",
       selector: (row: ConsultationSlot) => row?.orderID || 'N/A',
