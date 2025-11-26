@@ -8,49 +8,73 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { CSVLink } from 'react-csv';
 
 interface PaymentDetails {
-  paymentAmount?: string;
+  paymentId?: string;
+  paymentStatus?: string;
+  paymentAmount?: number;
   paymentMethod?: string;
+  currency?: string;
+  bank?: string | null;
+  email?: string;
+  contact?: string;
+  fee?: number;
+  tax?: number;
+  createdAt?: string;
+  transactionId?: string;
 }
 
 interface Slot {
+  _id?: string;
   fromTime?: string;
   toTime?: string;
 }
 
 interface Customer {
+  _id?: string;
   email?: string;
 }
 
 interface Astrologer {
+  _id?: string;
   astrologerName?: string;
+  title?: string;
 }
 
 interface Consultation {
   _id: string;
   astrologerId?: Astrologer;
-  fullName?: string;
-  email?: string;
   customerId?: Customer;
+  fullName?: string;
+  gender?: string;
   mobileNumber?: string;
-  gender?:string;
   dateOfBirth?: string;
   timeOfBirth?: string;
   placeOfBirth?: string;
   date?: string;
+  fromTime?: string;
+  toTime?: string;
   slotId?: Slot;
+  status?: string;
+  reviewed?: boolean;
+  consultationPrice?: number;
   consultationType?: string;
   consultationTopic?: string;
-  paymentDetails?: PaymentDetails;
-  reviewed?: string;
+  couponCode?: string;
+  astrologerJoined?: boolean;
+  customerJoined?: boolean;
+  latitude?: number;
+  longitude?: number;
   meetingId?: string;
-  meetingPasscode?: string;
-  status?: string;
+  meetingPassword?: string;
+  paymentDetails?: PaymentDetails;
   createdAt?: string;
   updatedAt?: string;
+  endTime?: string;
+  __v?: number;
 }
 
 interface ApiResponse {
   success: boolean;
+  message?: string;
   bookings?: Consultation[];
   totalPages?: number;
   currentPage?: number;
@@ -74,14 +98,14 @@ const DeepSearchSpace = (data: Consultation[], searchText: string): Consultation
     const searchableFields = [
       item?.astrologerId?.astrologerName,
       item?.fullName,
-      item?.email,
+      item?.customerId?.email,
       item?.mobileNumber,
       item?.dateOfBirth,
       item?.timeOfBirth,
       item?.placeOfBirth,
       item?.consultationType,
       item?.consultationTopic,
-      item?.paymentDetails?.paymentAmount,
+      item?.paymentDetails?.paymentAmount?.toString(),
       item?.paymentDetails?.paymentMethod,
       item?.status
     ];
@@ -142,15 +166,14 @@ export default function Consultation() {
     status: '',
     customerName: '',
     astrologerName: '',
-    startDate: moment().format('YYYY-MM-DD'), // Set to today
-  endDate: moment().format('YYYY-MM-DD') 
+    startDate: moment().format('YYYY-MM-DD'),
+    endDate: moment().format('YYYY-MM-DD') 
   });
 
   const fetchConsultations = async () => {
     try {
       setLoading(true);
 
-      // Fetch all data without filters - we'll filter on client side
       const query = new URLSearchParams({
         page: '1',
         limit: '1000',
@@ -174,7 +197,7 @@ export default function Consultation() {
 
   useEffect(() => {
     fetchConsultations();
-  }, []); // Only fetch once on mount
+  }, []);
 
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -210,7 +233,10 @@ export default function Consultation() {
     },
     { 
       name: 'Email', 
-      selector: (row: Consultation) => row?.email || 'N/A',
+      selector: (row: Consultation) => {
+        const email = row?.customerId?.email?.trim();
+        return email && email.length > 0 ? email : 'N/A';
+      },
       width: '200px'
     },
     { 
@@ -251,7 +277,7 @@ export default function Consultation() {
     },
     { 
       name: 'Amount', 
-      selector: (row: Consultation) => row?.paymentDetails?.paymentAmount || 'N/A',
+      selector: (row: Consultation) => row?.paymentDetails?.paymentAmount ? `₹${row.paymentDetails.paymentAmount}` : 'N/A',
       width: '100px'
     },
     { 
@@ -273,7 +299,6 @@ export default function Consultation() {
       ),
       width: '120px'
     },
-
   ];
 
   const handleClearFilters = () => {
@@ -281,41 +306,39 @@ export default function Consultation() {
       status: '',
       customerName: '',
       astrologerName: '',
-      startDate: moment().format('YYYY-MM-DD'), // Reset to today
-    endDate: moment().format('YYYY-MM-DD')
+      startDate: moment().format('YYYY-MM-DD'),
+      endDate: moment().format('YYYY-MM-DD')
     });
     setSearchText('');
   };
 
-  // Add this function before the return statement
-const prepareCSVData = () => {
-  return consultationData.map((item, index) => ({
-    'Astrologer': item?.astrologerId?.astrologerName || 'N/A',
-    'Customer': item?.fullName || 'N/A',
-    'Email': item?.email || 'N/A',
-    'Mobile': item?.mobileNumber || 'N/A',
-    'Gender': item?.gender || '',
-    'Date of Birth': item?.dateOfBirth ? `\t${item.dateOfBirth}` : 'N/A',
-    'Time of Birth': item?.timeOfBirth || 'N/A',
-    'Place of Birth': item?.placeOfBirth || 'N/A',
-    'Date': item?.date ? `\t${moment(item.date).format('YYYY-MM-DD')}` : 'N/A',
-    'Slot From': item?.slotId?.fromTime || 'N/A',
-    'Slot To': item?.slotId?.toTime || 'N/A',
-    'Consultation Type': item?.consultationType || 'N/A',
-    'Consultation Topic': item?.consultationTopic || 'N/A',
-    'Payment Amount': item?.paymentDetails?.paymentAmount || 'N/A',
-    'Payment Method': item?.paymentDetails?.paymentMethod || 'N/A',
-    'Status': item?.status || 'N/A',
-    'Meeting ID': item?.meetingId || 'N/A',
-    'Meeting Passcode': item?.meetingPasscode || 'N/A',
-    'Created At': item?.createdAt ? `\t${moment(item.createdAt).format('YYYY-MM-DD HH:mm:ss')}` : '',
-    'Updated At': item?.updatedAt ? `\t${moment(item.updatedAt).format('YYYY-MM-DD HH:mm:ss')}` : '',
-  }));
-};
+  const prepareCSVData = () => {
+    return consultationData.map((item) => ({
+      'Astrologer': item?.astrologerId?.astrologerName || 'N/A',
+      'Customer': item?.fullName || 'N/A',
+      'Email': item?.customerId?.email?.trim() || 'N/A',
+      'Mobile': item?.mobileNumber || 'N/A',
+      'Gender': item?.gender || '',
+      'Date of Birth': item?.dateOfBirth ? `\t${item.dateOfBirth}` : 'N/A',
+      'Time of Birth': item?.timeOfBirth || 'N/A',
+      'Place of Birth': item?.placeOfBirth || 'N/A',
+      'Date': item?.date ? `\t${moment(item.date).format('YYYY-MM-DD')}` : 'N/A',
+      'Slot From': item?.slotId?.fromTime || 'N/A',
+      'Slot To': item?.slotId?.toTime || 'N/A',
+      'Consultation Type': item?.consultationType || 'N/A',
+      'Consultation Topic': item?.consultationTopic || 'N/A',
+      'Payment Amount': item?.paymentDetails?.paymentAmount || 'N/A',
+      'Payment Method': item?.paymentDetails?.paymentMethod || 'N/A',
+      'Status': item?.status || 'N/A',
+      'Meeting ID': item?.meetingId || 'N/A',
+      'Meeting Password': item?.meetingPassword || 'N/A',
+      'Created At': item?.createdAt ? `\t${moment(item.createdAt).format('YYYY-MM-DD HH:mm:ss')}` : '',
+      'Updated At': item?.updatedAt ? `\t${moment(item.updatedAt).format('YYYY-MM-DD HH:mm:ss')}` : '',
+    }));
+  };
 
   return (
     <div className="p-5 bg-white rounded-lg border border-gray-200">
-      {/* Header Section - Same as MainDatatable */}
       <div className="mb-5">
         <div className="flex justify-between items-center mb-5 bg-white">
           <div className="text-xl font-semibold text-gray-800">
@@ -323,9 +346,6 @@ const prepareCSVData = () => {
           </div>
           
           <div className="flex gap-3 items-center">
-            {/* Search Bar - Same styling as MainDatatable */}
-          
-            {/* CSV Download */}
             {consultationData.length > 0 && (
               <CSVLink 
                 filename="Consultation_Bookings.csv" 
@@ -338,7 +358,6 @@ const prepareCSVData = () => {
           </div>
         </div>
 
-        {/* Filters Section */}
         <div className="flex flex-wrap gap-3 mb-4">
           <select 
             name="status" 
@@ -398,14 +417,13 @@ const prepareCSVData = () => {
         </div>
       </div>
 
-      {/* DataTable with filtered data */}
       <MainDatatable 
         columns={columns} 
         data={finalFilteredData} 
         isLoading={loading}
         title="" 
         addButtonActive={false}
-        showSearch={false} // Disable MainDatatable's search since we have our own
+        showSearch={false}
       />
     </div>
   );
