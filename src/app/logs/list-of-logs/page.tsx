@@ -293,7 +293,7 @@ const ConsultationLogsPage = () => {
           {getConsultationIcon(row.consultationType)}
         </div>
       ),
-      width: '150px',
+      width: '200px',
     },
     {
       name: 'Payment',
@@ -312,7 +312,7 @@ const ConsultationLogsPage = () => {
         )
       ),
       sortable: true,
-      width: '200px',
+      width: '170px',
     },
     {
       name: 'Status',
@@ -327,7 +327,7 @@ const ConsultationLogsPage = () => {
         );
       },
       sortable: true,
-      width: '200px',
+      width: '250px',
     },
     {
       name: 'Time Slot',
@@ -556,6 +556,7 @@ const ConsultationLogsPage = () => {
           isLoading={loading}
           showSearch={true}
           expandableRows={true}
+          
           expandableRowsComponent={ExpandedComponent}
           statusFilters={statusFilters}
           onStatusFilterChange={setStatusFilter}
