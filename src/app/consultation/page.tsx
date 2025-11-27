@@ -188,9 +188,14 @@ export default function Consultation() {
       setLoading(true);
 
       const query = new URLSearchParams({
-        page: "1",
-        limit: "1000",
-      });
+      page: "1",
+      limit: "1000",
+      ...(filters.status && { status: filters.status }),
+      ...(filters.customerName && { customerName: filters.customerName }),
+      ...(filters.astrologerName && { astrologerName: filters.astrologerName }),
+      ...(filters.startDate && { startDate: filters.startDate }),
+      ...(filters.endDate && { endDate: filters.endDate }),
+    });
 
       const res = await fetch(
         `${
@@ -212,9 +217,9 @@ export default function Consultation() {
     }
   };
 
-  useEffect(() => {
-    fetchConsultations();
-  }, []);
+ useEffect(() => {
+  fetchConsultations();
+}, [filters]); 
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -238,8 +243,7 @@ export default function Consultation() {
 
   // Apply filters first, then search
   const filteredByFilters = applyClientFilters(consultationData, filters);
-  const finalFilteredData = DeepSearchSpace(filteredByFilters, searchText);
-
+const finalFilteredData = DeepSearchSpace(consultationData, searchText);
   const columns = [
     {
       name: "S.No.",
