@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import MainDatatable from "@/components/common/MainDatatable";
 import DownloadIcon from "@mui/icons-material/Download";
 import { CSVLink } from "react-csv";
+import Tooltip from "@mui/material/Tooltip";
 
 interface PaymentDetails {
   paymentId?: string;
@@ -261,9 +262,13 @@ export default function Consultation() {
     },
     {
       name: "Email",
-      selector: (row: Consultation) => {
-        const email = row?.paymentDetails?.email?.trim();
-        return email && email.length > 0 ? email : "N/A";
+      cell: (row: Consultation) => {
+        const email = row?.paymentDetails?.email?.trim() || "N/A";
+        return (
+          <Tooltip title={email}>
+            <span className="truncate block w-full">{email}</span>
+          </Tooltip>
+        );
       },
       width: "200px",
     },
@@ -272,16 +277,35 @@ export default function Consultation() {
       selector: (row: Consultation) => row?.mobileNumber || "N/A",
       width: "130px",
     },
-    { 
-      name: 'DOB/TOB', 
-      selector: (row: Consultation) => `${row?.dateOfBirth ? moment(row.dateOfBirth).format('DD/MM/YYYY') : 'N/A'} / ${row?.timeOfBirth ? moment(row.timeOfBirth, 'HH:mm').format('hh:mm A') : 'N/A'}`,
+    {
+      name: 'DOB/TOB',
+      cell: (row: Consultation) => {
+        const dob = row?.dateOfBirth ? moment(row.dateOfBirth).format('DD/MM/YYYY') : 'N/A';
+        const tob = row?.timeOfBirth ? moment(row.timeOfBirth, 'HH:mm').format('hh:mm A') : 'N/A';
+        const value = `${dob} / ${tob}`;
+
+        return (
+          <Tooltip title={value}>
+            <span className="truncate block w-full">{value}</span>
+          </Tooltip>
+        );
+      },
       width: '180px'
     },
+
     {
       name: "POB",
-      selector: (row: Consultation) => row?.placeOfBirth || "N/A",
+      cell: (row: Consultation) => {
+        const value = row?.placeOfBirth || "N/A";
+        return (
+          <Tooltip title={value}>
+            <span className="truncate block w-full">{value}</span>
+          </Tooltip>
+        );
+      },
       width: "150px",
     },
+
     { 
       name: 'Date', 
       selector: (row: Consultation) => row?.date ? moment(row.date).format('DD/MM/YYYY') : 'N/A',
@@ -296,13 +320,28 @@ export default function Consultation() {
     },
     {
       name: "Type",
-      selector: (row: Consultation) => row?.consultationType || "N/A",
+      cell: (row: Consultation) => {
+        const value = row?.consultationType || "N/A";
+        return (
+          <Tooltip title={value}>
+            <span className="truncate block w-full">{value}</span>
+          </Tooltip>
+        );
+      },
       width: "120px",
     },
+
     {
       name: "Topic",
-      selector: (row: Consultation) => row?.consultationTopic || "N/A",
-      width: "150px",
+      cell: (row: Consultation) => {
+        const value = row?.consultationTopic || "N/A";
+        return (
+          <Tooltip title={value}>
+            <span className="truncate block w-full">{value}</span>
+          </Tooltip>
+        );
+      },
+      width: "120px",
     },
     {
       name: "Amount",
