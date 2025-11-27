@@ -246,7 +246,7 @@ export default function Consultation() {
     },
     { 
       name: 'DOB/TOB', 
-      selector: (row: Consultation) => `${row?.date ? moment(row.date).format('DD/MM/YYYY') : 'N/A'} / ${row?.timeOfBirth ? moment(row.timeOfBirth, 'HH:mm').format('hh:mm A') : 'N/A'}`,
+      selector: (row: Consultation) => `${row?.dateOfBirth ? moment(row.dateOfBirth).format('DD/MM/YYYY') : 'N/A'} / ${row?.timeOfBirth ? moment(row.timeOfBirth, 'HH:mm').format('hh:mm A') : 'N/A'}`,
       width: '180px'
     },
     { 
