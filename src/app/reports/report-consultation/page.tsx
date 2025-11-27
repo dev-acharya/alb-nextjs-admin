@@ -146,7 +146,7 @@ export default function ConsultationSlots() {
       });
       
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/life-journey-report/booked-consultation-slots?${params.toString()}`
+        `${process.env.NEXT_PUBLIC_API_URL}/api/life-journey-report/consultation-booked-slots?${params.toString()}`
       );
       const data: ApiResponse = await res.json();
 
