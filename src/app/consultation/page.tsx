@@ -356,9 +356,9 @@ export default function Consultation() {
 
   const prepareCSVData = (data: Consultation[]) => {
     return data.map((item) => ({
-      Astrologer: item?.astrologerId?.astrologerName || "N/A",
-      Customer: item?.fullName || "N/A",
-      Email: item?.paymentDetails?.email?.trim() || "N/A",
+      "Astrologer Name": item?.astrologerId?.astrologerName || "N/A",
+      "Customer Name": item?.fullName || "N/A",
+      "Email": item?.paymentDetails?.email?.trim() || "N/A",
       Mobile: item?.mobileNumber || "N/A",
       Gender: item?.gender || "",
       "Time of Birth": item?.timeOfBirth || "N/A",
@@ -371,8 +371,8 @@ export default function Consultation() {
       "Payment Amount": item?.paymentDetails?.paymentAmount || "N/A",
       "Payment Method": item?.paymentDetails?.paymentMethod || "N/A",
       Status: item?.status || "N/A",
-      "Meeting ID": item?.meetingId || "N/A",
-      "Meeting Password": item?.meetingPassword || "N/A",
+      // "Meeting ID": item?.meetingId || "N/A",
+      // "Meeting Password": item?.meetingPassword || "N/A",
       "Created At": item?.createdAt
         ? `\t${moment(item.createdAt).format("YYYY-MM-DD HH:mm:ss")}`
         : "",
