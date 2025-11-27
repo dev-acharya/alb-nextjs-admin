@@ -217,9 +217,13 @@ export default function Consultation() {
     }
   };
 
- useEffect(() => {
-  fetchConsultations();
-}, [filters]); 
+useEffect(() => {
+  const timeoutId = setTimeout(() => {
+    fetchConsultations();
+  }, 300); 
+
+  return () => clearTimeout(timeoutId);
+}, [filters.status, filters.customerName, filters.astrologerName, filters.startDate, filters.endDate]);
 
   const handleFilterChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
