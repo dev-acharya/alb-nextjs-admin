@@ -79,15 +79,15 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/images/login-background.jpg')" }}>
+    <div className="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/login-background.jpg')" }}>
       <div className="bg-white rounded-3xl shadow-lg p-8 w-full max-w-md">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Logo */}
           <div className="flex justify-center items-center">
             <Image
-              src="/images/logo.png"
+              src="/images/logo/logo.png"
               alt="Logo"
-              width={70}
+              width={400}
               height={70}
               priority
               className="object-contain"
@@ -96,9 +96,9 @@ export default function Login() {
 
           {/* Username Field */}
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+            {/* <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
               Username
-            </label>
+            </label> */}
             <input
               id="username"
               type="text"
@@ -114,9 +114,9 @@ export default function Login() {
 
           {/* Password Field */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            {/* <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
               Password
-            </label>
+            </label> */}
             <div className="relative">
               <input
                 id="password"
