@@ -5,7 +5,7 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     // Express backend ko call karo
-    const response = await fetch('http://localhost:3003/api/admin/adminLogin', {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/adminLogin`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -17,16 +17,15 @@ export async function POST(request: Request) {
       return NextResponse.json(data, { status: response.status });
     }
 
-    // Response banao
     const res = NextResponse.json(
       { 
         message: 'Login successful',
-        token: data.token // Frontend localStorage ke liye
+        token: data.token // Frontend localStorage 
       },
       { status: 200 }
     );
 
-    // Cookie mein token set karo (middleware ke liye)
+    // set httpOnly cookie
     res.cookies.set('token', data.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
