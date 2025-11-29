@@ -18,11 +18,11 @@ export const RouteName = [
     name: "Reports",
     icon: <NotificationRouteSvg />,
     subRoutes: [
-      {
-        path: "/reports/time-block-report",
-        name: "Time Block",
-        icon: <OtherRouteSvg />,
-      },
+      // {
+      //   path: "/reports/time-block-report",
+      //   name: "Time Block",
+      //   icon: <OtherRouteSvg />,
+      // },
       {
         path: "/reports/report-consultation",
         name: "Report Consultations",
