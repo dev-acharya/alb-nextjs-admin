@@ -35,8 +35,20 @@ function PasswordModal({ isOpen, onClose }: PasswordModalProps) {
       return;
     }
 
+    // Check for spaces in passwords
+    if (currentPassword.includes(' ') || newPassword.includes(' ') || confirmPassword.includes(' ')) {
+      setErrorMessage('Password cannot contain spaces');
+      return;
+    }
+
     if (newPassword.length < 6) {
       setErrorMessage('New password must be at least 6 characters long');
+      return;
+    }
+
+    // Check if new password is same as current password
+    if (currentPassword === newPassword) {
+      setErrorMessage('New password cannot be the same as current password');
       return;
     }
 
