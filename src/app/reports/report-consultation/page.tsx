@@ -15,7 +15,8 @@ const reportPrefixes = [
   { value: '#LCR-', label: 'Life Changing Report' },
   { value: '#KM-', label: 'Kundli Matching Report' },
   { value: '#LR-', label: 'Love Report' },
-  { value: '#VR-', label: 'Name & Number Report' },
+  { value: '#NNR-', label: 'Name & Number Report' },
+  { value: '#VR-', label: 'Varshphal Report' },
   // { value: '#BNR-', label: 'Baby Name Report' },
   // { value: '#CR-', label: 'Career Report' },
 ];
