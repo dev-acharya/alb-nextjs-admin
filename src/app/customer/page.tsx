@@ -20,6 +20,7 @@ interface Customer {
   wallet_balance: number;
   dateOfBirth: string;
   timeOfBirth: string;
+  isDeleted?: number;        // 👈 add
   banned_status: boolean;
   email?: string;
   gender?: string;
@@ -140,6 +141,79 @@ export default function Customer() {
     }
     return isValid;
   };
+
+  // Delete (soft-delete) toggle
+const handleDeleteToggle = async (customer: Customer) => {
+  const currentDeleted = customer.isDeleted === 1;
+  const newDeleted = !currentDeleted;
+  const action = newDeleted ? 'delete' : 'restore';
+
+  const result = await Swal.fire({
+    title: `Are you sure?`,
+    text: `You want to ${action} this customer?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: newDeleted ? '#d33' : '#3085d6',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: `Yes, ${action} customer!`,
+    cancelButtonText: 'Cancel',
+  });
+
+  if (!result.isConfirmed) return;
+
+  Swal.fire({
+    title: `${newDeleted ? 'Deleting' : 'Restoring'}...`,
+    text: 'Please wait',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading(),
+  });
+
+  const payload = {
+    customerId: customer._id,
+    isDeleted: newDeleted,       // 👈 this triggers isDeleted update only
+  };
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/change-banned-status`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      setCustomerData((prev) =>
+        prev.map((cust) =>
+          cust._id === customer._id
+            ? { ...cust, isDeleted: data.data.isDeleted }
+            : cust
+        )
+      );
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: `Customer ${
+          newDeleted ? 'marked as deleted' : 'restored'
+        } successfully`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } else {
+      throw new Error(data.message || 'Failed to update delete status');
+    }
+  } catch (error: any) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: error.message,
+    });
+  }
+};
 
   const handleSubmit = () => {
     if (!handleValidation()) return;
@@ -353,18 +427,38 @@ export default function Customer() {
       width: '120px'
     },
     {
-      name: 'Status',
-      selector: (row: Customer) => (
-        <div
-          className="cursor-pointer flex justify-center"
-          onClick={() => handleStatusToggle(row)}
-        >
-          {row.banned_status ? <SwitchOffSvg /> : <SwitchOnSvg />}
-        </div>
-      ),
-      width: "140px",
-      
-    },
+  name: 'is Not Ban',
+  selector: (row: Customer) => (
+    <div
+      className="cursor-pointer flex justify-center"
+      onClick={() => handleStatusToggle(row)}
+    >
+      {row.banned_status ? <SwitchOffSvg /> : <SwitchOnSvg />}
+    </div>
+  ),
+  width: '120px',
+},
+{
+  name: 'is Not Delete',
+  selector: (row: Customer) => {
+    const isDeleted = row.isDeleted === 1;
+    return (
+      <div
+        className="cursor-pointer flex justify-center"
+        onClick={() => handleDeleteToggle(row)}
+      >
+        {isDeleted ? (
+          // red toggle when deleted
+          <SwitchOffSvg />
+        ) : (
+          // green toggle when active
+          <SwitchOnSvg />
+        )}
+      </div>
+    );
+  },
+  width: '120px',
+},
     {
       name: 'Action',
       cell: (row: Customer) => (
