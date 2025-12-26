@@ -168,9 +168,9 @@ const ReportOrders: React.FC = () => {
         const yesterday = moment().subtract(1, 'days');
         return { from: yesterday.format("YYYY-MM-DD"), to: yesterday.format("YYYY-MM-DD") };
       case "weekly":
-        return { from: today.subtract(7, 'days').format("YYYY-MM-DD"), to: moment().format("YYYY-MM-DD") };
+        return { from: moment().subtract(6, 'days').format("YYYY-MM-DD"), to: moment().format("YYYY-MM-DD") };
       case "monthly":
-        return { from: today.subtract(30, 'days').format("YYYY-MM-DD"), to: moment().format("YYYY-MM-DD") };
+        return { from: moment().subtract(29, 'days').format("YYYY-MM-DD"), to: moment().format("YYYY-MM-DD") };
       default:
         return { from: "", to: "" };
     }
@@ -218,145 +218,142 @@ const ReportOrders: React.FC = () => {
   };
 
   // Create a unique key for current filter combination
-const getFilterKey = (filterObj: Filters): string => {
-  return JSON.stringify({
-    q: filterObj.q,
-    from: filterObj.from,
-    to: filterObj.to,
-    language: filterObj.language,
-    planName: filterObj.planName,
-    status: filterObj.status,
-    astroConsultation: filterObj.astroConsultation,
-    expressDelivery: filterObj.expressDelivery,
-    sortBy: filterObj.sortBy,
-    sortOrder: filterObj.sortOrder,
-  });
-};
-
-  // Fetch date range stats (sirf date filters ka)
-// Fetch date range stats (sirf date filters ka)
-// Fetch date range stats (sirf from aur to date ke hisaab se)
-const fetchDateRangeStats = async (fromDate?: string, toDate?: string) => {
-  try {
-    // Agar koi date nahi hai to mat fetch karo
-    if (!fromDate && !toDate) {
-      setDateRangeStats(null);
-      return;
-    }
-    
-    const statsQs = new URLSearchParams();
-    if (fromDate) statsQs.set('from', fromDate);
-    if (toDate) statsQs.set('to', toDate);
-    
-    // URL CHANGE: /date-range-stats
-    const statsResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders/date?${statsQs.toString()}`,
-      { headers: getAuthHeaders() }
-    );
-    
-    if (statsResponse.ok) {
-      const statsResult = await statsResponse.json();
-      setDateRangeStats(statsResult || null);
-    }
-  } catch (error) {
-    console.error('Failed to fetch date range stats:', error);
-  }
-};
-
-// Fetch filtered stats (sab filters ka)
-const fetchFilteredStats = async (currentFilters: Filters) => {
-  try {
-    const statsQs = new URLSearchParams();
-    Object.entries(currentFilters).forEach(([k, v]) => {
-      if (v !== "" && v !== null && v !== undefined && 
-          k !== "limit" && k !== "sortBy" && k !== "sortOrder" && k !== "page") {
-        statsQs.set(k, String(v));
-      }
+  const getFilterKey = (filterObj: Filters): string => {
+    return JSON.stringify({
+      q: filterObj.q,
+      from: filterObj.from,
+      to: filterObj.to,
+      language: filterObj.language,
+      planName: filterObj.planName,
+      status: filterObj.status,
+      astroConsultation: filterObj.astroConsultation,
+      expressDelivery: filterObj.expressDelivery,
+      sortBy: filterObj.sortBy,
+      sortOrder: filterObj.sortOrder,
     });
+  };
 
-    // Clean up empty filters
-    if (currentFilters.astroConsultation === "") statsQs.delete("astroConsultation");
-    if (currentFilters.expressDelivery === "") statsQs.delete("expressDelivery");
-
-    const statsResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders/stats?${statsQs.toString()}`,
-      { headers: getAuthHeaders() }
-    );
-    
-    if (statsResponse.ok) {
-      const statsResult = await statsResponse.json();
-      setStats(statsResult || null); // ✅ setStats use karo, setFilteredStats nahi
-    }
-  } catch (error) {
-    console.error('Failed to fetch filtered stats:', error);
-  }
-};
-  // Create debounced fetch function
-
-const debouncedFetch = useMemo(() => 
-  debounce(async (currentFilters: Filters, currentPage: number) => {
-    setLoading(true);
+  // Fetch date range stats (sirf from aur to date ke hisaab se)
+  const fetchDateRangeStats = async (fromDate?: string, toDate?: string) => {
     try {
-      const qs = new URLSearchParams();
+      // Agar koi date nahi hai to mat fetch karo
+      if (!fromDate && !toDate) {
+        setDateRangeStats(null);
+        return;
+      }
       
-      // Add all filters to query string
+      const statsQs = new URLSearchParams();
+      if (fromDate) statsQs.set('from', fromDate);
+      if (toDate) statsQs.set('to', toDate);
+      
+      const statsResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders/date?${statsQs.toString()}`,
+        { headers: getAuthHeaders() }
+      );
+      
+      if (statsResponse.ok) {
+        const statsResult = await statsResponse.json();
+        setDateRangeStats(statsResult || null);
+      }
+    } catch (error) {
+      console.error('Failed to fetch date range stats:', error);
+    }
+  };
+
+  // Fetch filtered stats (sab filters ka)
+  const fetchFilteredStats = async (currentFilters: Filters) => {
+    try {
+      const statsQs = new URLSearchParams();
       Object.entries(currentFilters).forEach(([k, v]) => {
-        if (v !== "" && v !== null && v !== undefined && k !== "dateRange") { // dateRange remove
-          if (k === "from" && currentFilters.from && !currentFilters.to) {
-            qs.set("from", currentFilters.from);
-            qs.set("to", currentFilters.from);
-          } else {
-            qs.set(k, String(v));
-          }
+        if (v !== "" && v !== null && v !== undefined && 
+            k !== "limit" && k !== "sortBy" && k !== "sortOrder" && k !== "page") {
+          statsQs.set(k, String(v));
         }
       });
 
-      // Set pagination
-      qs.set("page", String(currentPage));
-      qs.set("limit", String(currentFilters.limit));
+      // Clean up empty filters
+      if (currentFilters.astroConsultation === "") statsQs.delete("astroConsultation");
+      if (currentFilters.expressDelivery === "") statsQs.delete("expressDelivery");
 
-      // Clean up boolean filters
-      if (currentFilters.astroConsultation === "") qs.delete("astroConsultation");
-      if (currentFilters.expressDelivery === "") qs.delete("expressDelivery");
-      if (!currentFilters.includeDeleted) qs.delete("includeDeleted");
-
-      // Fetch orders - URL SAME
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders?${qs.toString()}`,
+      const statsResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders/stats?${statsQs.toString()}`,
         { headers: getAuthHeaders() }
       );
-
-      if (!response.ok) throw new Error("Failed to fetch");
-
-      const result = await response.json();
-      const data: ApiResponse = result.data || result;
       
-      setRows(data?.items || []);
-      setPage(data?.page || 1);
-      setTotalPages(data?.pages || 1);
-      setTotalItems(data?.total || 0);
-
-      // Store current page
-      const filterKey = getFilterKey(currentFilters);
-      paginationHistory.current.set(filterKey, data?.page || 1);
-
-      // IMPORTANT: Dono alag-alag stats fetch karo
-      // 1. Date range ke liye (sirf from/to)
-      // 2. Sab filters ke liye
-      await Promise.all([
-        fetchFilteredStats(currentFilters), // Ye sab filters le jayega
-        fetchDateRangeStats(currentFilters.from, currentFilters.to) // Ye sirf from/to le jayega
-      ]);
-
-    } catch (e) {
-      console.error(e);
-      Swal.fire({ icon: "error", title: "Failed to load orders", timer: 2000, showConfirmButton: false });
-    } finally {
-      setLoading(false);
+      if (statsResponse.ok) {
+        const statsResult = await statsResponse.json();
+        setStats(statsResult || null);
+      }
+    } catch (error) {
+      console.error('Failed to fetch filtered stats:', error);
     }
-  }, 500),
-  []
-);
+  };
+
+  // Create debounced fetch function
+  const debouncedFetch = useMemo(() => 
+    debounce(async (currentFilters: Filters, currentPage: number) => {
+      setLoading(true);
+      try {
+        const qs = new URLSearchParams();
+        
+        // Add all filters to query string
+        Object.entries(currentFilters).forEach(([k, v]) => {
+          if (v !== "" && v !== null && v !== undefined && k !== "dateRange") {
+            if (k === "from" && currentFilters.from && !currentFilters.to) {
+              qs.set("from", currentFilters.from);
+              qs.set("to", currentFilters.from);
+            } else {
+              qs.set(k, String(v));
+            }
+          }
+        });
+
+        // Set pagination
+        qs.set("page", String(currentPage));
+        qs.set("limit", String(currentFilters.limit));
+
+        // Clean up boolean filters
+        if (currentFilters.astroConsultation === "") qs.delete("astroConsultation");
+        if (currentFilters.expressDelivery === "") qs.delete("expressDelivery");
+        if (!currentFilters.includeDeleted) qs.delete("includeDeleted");
+
+        // Fetch orders
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders?${qs.toString()}`,
+          { headers: getAuthHeaders() }
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch");
+
+        const result = await response.json();
+        const data: ApiResponse = result.data || result;
+        
+        setRows(data?.items || []);
+        setPage(data?.page || 1);
+        setTotalPages(data?.pages || 1);
+        setTotalItems(data?.total || 0);
+
+        // Store current page
+        const filterKey = getFilterKey(currentFilters);
+        paginationHistory.current.set(filterKey, data?.page || 1);
+
+        // IMPORTANT: Dono alag-alag stats fetch karo
+        // 1. Date range ke liye (sirf from/to)
+        // 2. Sab filters ke liye
+        await Promise.all([
+          fetchFilteredStats(currentFilters),
+          fetchDateRangeStats(currentFilters.from, currentFilters.to)
+        ]);
+
+      } catch (e) {
+        console.error(e);
+        Swal.fire({ icon: "error", title: "Failed to load orders", timer: 2000, showConfirmButton: false });
+      } finally {
+        setLoading(false);
+      }
+    }, 500),
+    []
+  );
 
   // Initial fetch
   useEffect(() => {
@@ -665,10 +662,12 @@ const debouncedFetch = useMemo(() =>
     }
   ], [page, filters.limit]);
 
-  // Check if any non-date filters are active
-  const hasNonDateFilters = useMemo(() => {
+  // Check if any filters are active
+  const hasActiveFilters = useMemo(() => {
     return !!(
       filters.q ||
+      filters.from ||
+      filters.to ||
       filters.language ||
       filters.planName ||
       (filters.status && filters.status !== "all") ||
@@ -677,87 +676,91 @@ const debouncedFetch = useMemo(() =>
     );
   }, [filters]);
 
-  // Format date range for display
-  const getFormattedDateRange = () => {
-    if (filters.dateRange) {
-      switch(filters.dateRange) {
-        case "today": return "Today";
-        case "yesterday": return "Yesterday";
-        case "weekly": return "Last 7 Days";
-        case "monthly": return "Last 30 Days";
-        default: return "";
-      }
-    } else if (filters.from || filters.to) {
-      if (filters.from && filters.to) {
-        return `${moment(filters.from).format("MMM D, YYYY")} - ${moment(filters.to).format("MMM D, YYYY")}`;
-      } else if (filters.from) {
-        return `From ${moment(filters.from).format("MMM D, YYYY")}`;
-      } else if (filters.to) {
-        return `Until ${moment(filters.to).format("MMM D, YYYY")}`;
-      }
+  // Check if today is included in selected date range
+  const isTodayInDateRange = useMemo(() => {
+    const today = moment().format("YYYY-MM-DD");
+    
+    // Agar koi date filter nahi hai to false
+    if (!filters.from && !filters.to && !filters.dateRange) {
+      return false;
     }
-    return "All Time";
-  };
+    
+    // Agar "today" explicitly select kiya hai
+    if (filters.dateRange === "today") {
+      return true;
+    }
+    
+    return false;
+  }, [filters]);
 
   return (
     <>
       <div className="p-5 bg-white rounded-xl shadow-sm mb-5">
         {/* Header + Stats */}
-       <div className="p-5 bg-white rounded-xl shadow-sm mb-5">
-  {/* Header + Stats */}
-  <div className="flex flex-wrap justify-between items-start gap-4 mb-5">
-    <div>
-      {/* Date Range Stats - Always visible */}
-      {dateRangeStats && (
-        <>
-          <div className="text-xl text-gray-700">
-            Total{" "}
-            <span className="font-semibold">
-              {dateRangeStats.stats.formatted.ordersCount}
-            </span>{" "}
-            orders •{" "}
-            <strong>{dateRangeStats.stats.formatted.totalRevenue}</strong>
-          </div>
-          <div className="text-sm text-gray-500 mt-1">
-            Average: {dateRangeStats.stats.formatted.averageOrderValue} per order
-          </div>
-        </>
-      )}
-      
-      {/* Today's Stats - Always visible */}
-      {stats && (
-        <div className="text-lg text-gray-900 mt-2">
-          <span className="font-semibold">Today:</span>{" "}
-          <strong>{stats.todayOrders || 0}</strong> orders •{" "}
-          <strong>₹{Number(stats.todayRevenue || 0).toFixed(2)}</strong> revenue
-        </div>
-      )}
-      
-      {/* Filtered Stats - Only show if non-date filters are active */}
-      {stats && stats.filteredOrders !== undefined && stats.filteredOrders > 0 && (
-        <div className="text-md text-blue-600 mt-2">
-          <span className="font-semibold">Filtered:</span>{" "}
-          <strong>{stats.filteredOrders}</strong> orders •{" "}
-          <strong>₹{Number(stats.filteredRevenue || 0).toFixed(2)}</strong> revenue
-          <span className="text-gray-500 text-sm ml-2">
-            (Matching your filters)
-          </span>
-        </div>
-      )}
-    </div>
-    
-    <div className="flex gap-2">
-      <button onClick={downloadCSV} className="px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors">
-        CSV (Current Page)
-      </button>
-      <button onClick={downloadServerCSV} className="px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors">
-        CSV (All)
-      </button>
-    </div>
-  </div>
+        <div className="flex flex-wrap justify-between items-start gap-4 mb-5">
+          <div className="w-full">
+            {/* 1. DATE RANGE STATS - TOP (Only when date selected) */}
+            {dateRangeStats && (filters.from || filters.to || filters.dateRange) && (
+              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              
+                <div className="text-2xl font-semibold text-gray-900">
+                  {dateRangeStats.stats.formatted.ordersCount} orders • {dateRangeStats.stats.formatted.totalRevenue}
+                </div>
+                {/* <div className="text-sm text-gray-600 mt-1">
+                  Avg: ₹{dateRangeStats.stats.formatted.averageOrderValue} per order
+                </div> */}
+              </div>
+            )}
 
-  {/* Rest of your code... */}
-</div>
+            {/* 2. TOTAL STATS - Always visible */}
+            {stats && (
+              <div className="space-y-2">
+                <div className="text-lg text-gray-700">
+                  <span className="font-medium">Total:</span>{" "}
+                  <span className="font-semibold text-gray-900">{stats.totalOrders || 0}</span> orders • 
+                  <span className="font-semibold text-gray-900"> ₹{Number(stats.totalRevenue || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                </div>
+                
+                {/* 3. TODAY'S STATS - Hide if today is in date range */}
+                {!isTodayInDateRange && (
+                  <div className="text-md text-gray-600">
+                    <span className="font-medium">Today:</span>{" "}
+                    <span className="font-semibold">{stats.todayOrders || 0}</span> orders • 
+                    <span className="font-semibold"> ₹{Number(stats.todayRevenue || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                  </div>
+                )}
+                
+                {/* 4. FILTERED STATS - Only when filters active and different */}
+                {hasActiveFilters && stats.filteredOrders !== undefined && 
+                 stats.filteredOrders > 0 && stats.filteredOrders !== stats.totalOrders && (
+                  <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                    <div className="text-sm font-medium text-orange-700 mb-1">
+                      Filtered Results
+                    </div>
+                    <div className="text-lg font-semibold text-gray-900">
+                      {stats.filteredOrders} orders • ₹{Number(stats.filteredRevenue || 0).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      {Math.round((stats.filteredOrders / stats.totalOrders) * 100)}% of total
+                      {dateRangeStats && (
+                        <> • {Math.round((stats.filteredOrders / dateRangeStats.stats.ordersCount) * 100)}% of date range</>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+          
+          <div className="flex gap-2 ml-auto">
+            <button onClick={downloadCSV} className="px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+              CSV (Current Page)
+            </button>
+            <button onClick={downloadServerCSV} className="px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+              CSV (All)
+            </button>
+          </div>
+        </div>
 
         {/* Filters */}
         <div className="flex flex-wrap gap-4 mb-5">
@@ -952,22 +955,6 @@ const debouncedFetch = useMemo(() =>
             </button>
           </div>
         </div>
-
-{/* Comparison Info */}
-{stats && dateRangeStats && 
- (filters.q || filters.planName || filters.status !== "all" || 
-  filters.language || filters.astroConsultation || filters.expressDelivery) && (
-  <span className="text-blue-600">
-    <strong>{stats.filteredOrders || 0}</strong> of{" "}
-    <strong>{dateRangeStats.stats.ordersCount || 0}</strong> orders match your filters
-    {(stats.filteredRevenue && dateRangeStats.stats.totalRevenue) && (
-      <span className="ml-2">
-        (<strong>₹{Number(stats.filteredRevenue || 0).toFixed(2)}</strong> of{" "}
-        <strong>₹{Number(dateRangeStats.stats.totalRevenue || 0).toFixed(2)}</strong> revenue)
-      </span>
-    )}
-  </span>
-)}
 
         {/* Table */}
         <div className="overflow-x-auto mb-4">
