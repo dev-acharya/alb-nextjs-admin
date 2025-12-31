@@ -700,17 +700,7 @@ const ReportOrders: React.FC = () => {
         <div className="flex flex-wrap justify-between items-start gap-4 mb-5">
           <div className="w-full">
             {/* 1. DATE RANGE STATS - TOP (Only when date selected) */}
-            {dateRangeStats && (filters.from || filters.to || filters.dateRange) && (
-              <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              
-                <div className="text-2xl font-semibold text-gray-900">
-                  {dateRangeStats.stats.formatted.ordersCount} orders • {dateRangeStats.stats.formatted.totalRevenue}
-                </div>
-                {/* <div className="text-sm text-gray-600 mt-1">
-                  Avg: ₹{dateRangeStats.stats.formatted.averageOrderValue} per order
-                </div> */}
-              </div>
-            )}
+
 
             {/* 2. TOTAL STATS - Always visible */}
             {stats && (
@@ -756,9 +746,9 @@ const ReportOrders: React.FC = () => {
             <button onClick={downloadCSV} className="px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors">
               CSV (Current Page)
             </button>
-            <button onClick={downloadServerCSV} className="px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors">
+            {/* <button onClick={downloadServerCSV} className="px-3 py-1.5 text-sm font-medium text-blue-600 border border-blue-600 rounded-md hover:bg-blue-50 transition-colors">
               CSV (All)
-            </button>
+            </button> */}
           </div>
         </div>
 
