@@ -4,19 +4,22 @@ import React from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 
 interface Props {
-  benefits: string[]; // Array of strings
+  benefits: string[];
   setBenefits: (data: string[]) => void;
+  fieldErrors?: Record<string, string>;
 }
 
 const BenefitsTab: React.FC<Props> = ({
   benefits,
-  setBenefits
+  setBenefits,
+  fieldErrors = {}
 }) => {
   const handleAdd = () => {
     if (benefits.length < 10) {
       setBenefits([...benefits, '']);
     }
   };
+
   const handleUpdate = (index: number, value: string) => {
     const updated = [...benefits];
     updated[index] = value;
@@ -50,36 +53,53 @@ const BenefitsTab: React.FC<Props> = ({
         </button>
       </div>
 
+      {/* General error for benefits array */}
+      {fieldErrors['benefits'] && (
+        <div className="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+          <p className="text-red-600 text-sm">{fieldErrors['benefits']}</p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {benefits.map((benefit, index) => (
-          <div key={index} className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm">
-            <div className="flex items-start gap-3">
-              <div className="flex-1">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    Benefit {index + 1} *
-                  </label>
-                  <span className="text-xs text-gray-500">{index + 1}/{benefits.length}</span>
+        {benefits.map((benefit, index) => {
+          const errorKey = `benefits.${index}`;
+          const hasError = fieldErrors[errorKey];
+          
+          return (
+            <div key={index} className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Benefit {index + 1} <span className="text-red-500">*</span>
+                    </label>
+                    <span className="text-xs text-gray-500">{index + 1}/{benefits.length}</span>
+                  </div>
+                  <textarea
+                    value={benefit}
+                    onChange={(e) => handleUpdate(index, e.target.value)}
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none min-h-[100px] transition-all ${
+                      hasError ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-red-500'
+                    }`}
+                    placeholder="Example: Brings peace of mind, Improves health, Brings prosperity, etc."
+                    required
+                  />
+                  {hasError && (
+                    <p className="text-red-500 text-xs mt-1.5">{hasError}</p>
+                  )}
                 </div>
-                <textarea
-                  value={benefit}
-                  onChange={(e) => handleUpdate(index, e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none min-h-[100px]"
-                  placeholder="Example: Brings peace of mind, Improves health, Brings prosperity, etc."
-                  required
-                />
+                <button
+                  type="button"
+                  onClick={() => handleRemove(index)}
+                  disabled={benefits.length <= 1}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed mt-7"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => handleRemove(index)}
-                disabled={benefits.length <= 1}
-                className="p-2 text-red-500 hover:bg-red-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed mt-7"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

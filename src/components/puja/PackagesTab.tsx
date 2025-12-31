@@ -13,6 +13,7 @@ interface Props {
   removePackageFeature: any;
   handlePopularPackageChange: any;
   removeItem: any;
+  fieldErrors?: Record<string, string>;
 }
 
 const PackagesTab: React.FC<Props> = ({
@@ -24,7 +25,8 @@ const PackagesTab: React.FC<Props> = ({
   addPackageFeature,
   removePackageFeature,
   handlePopularPackageChange,
-  removeItem
+  removeItem,
+  fieldErrors = {}
 }) => {
   const [showTemplate, setShowTemplate] = useState(false);
 
@@ -77,13 +79,13 @@ const PackagesTab: React.FC<Props> = ({
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <button
+          {/* <button
             type="button"
             onClick={() => setShowTemplate(!showTemplate)}
             className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
           >
             {showTemplate ? 'Hide Templates' : 'Show Templates'}
-          </button>
+          </button> */}
           <button
             type="button"
             onClick={() => addItem(pricingPackages, setPricingPackages, { 
@@ -99,6 +101,13 @@ const PackagesTab: React.FC<Props> = ({
           </button>
         </div>
       </div>
+
+      {/* General error for pricingPackages array */}
+      {fieldErrors['pricingPackages'] && (
+        <div className="p-3 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+          <p className="text-red-600 text-sm">{fieldErrors['pricingPackages']}</p>
+        </div>
+      )}
 
       {/* Templates */}
       {showTemplate && (
@@ -136,195 +145,171 @@ const PackagesTab: React.FC<Props> = ({
 
       {/* Packages List */}
       <div className="space-y-8">
-        {pricingPackages.map((pkg) => (
-          <div key={pkg.id} className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center">
-                  <BanknoteIcon className="w-6 h-6 text-red-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-800">Package #{pkg.id}</h3>
-                  <p className="text-xs text-gray-500">Configure package details</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                {pkg.isPopular && (
-                  <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full flex items-center gap-1">
-                    <Crown className="w-3 h-3" />
-                    Popular
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => removeItem(pricingPackages, setPricingPackages, pkg.id)}
-                  disabled={pricingPackages.length <= 1}
-                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+        {pricingPackages.map((pkg, pkgIndex) => {
+          const titleError = fieldErrors[`pricingPackages.${pkgIndex}.title`];
+          const priceError = fieldErrors[`pricingPackages.${pkgIndex}.price`];
+          const featuresError = fieldErrors[`pricingPackages.${pkgIndex}.features`];
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              {/* Package Title */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Package Name *
-                </label>
-                <input
-                  type="text"
-                  value={pkg.title}
-                  onChange={(e) => updateItem(pricingPackages, setPricingPackages, pkg.id, 'title', e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
-                  placeholder="e.g., Basic, Premium, VIP"
-                  required
-                />
-              </div>
-
-              {/* Price */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Price (₹) *
-                </label>
-                <input
-                  type="number"
-                  value={pkg.price}
-                  onChange={(e) => updateItem(pricingPackages, setPricingPackages, pkg.id, 'price', parseFloat(e.target.value) || 0)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
-                  placeholder="0"
-                  required
-                  min="0"
-                />
-              </div>
-
-              {/* Original Price */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Original Price (₹)
-                </label>
-                <input
-                  type="number"
-                  value={pkg.originalPrice || ''}
-                  onChange={(e) => updateItem(pricingPackages, setPricingPackages, pkg.id, 'originalPrice', parseFloat(e.target.value) || '')}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
-                  placeholder="For showing discount"
-                  min="0"
-                />
-              </div>
-
-              {/* Discount */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Discount Display
-                </label>
-                <input
-                  type="text"
-                  value={pkg.discount || ''}
-                  onChange={(e) => updateItem(pricingPackages, setPricingPackages, pkg.id, 'discount', e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
-                  placeholder="e.g., 20% OFF"
-                />
-              </div>
-            </div>
-
-            {/* Features Section */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <label className="block text-sm font-medium text-gray-700">
-                  Package Features *
-                </label>
-                <button
-                  type="button"
-                  onClick={() => addPackageFeature(pkg.id)}
-                  className="text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Feature
-                </button>
-              </div>
-              
-              <div className="space-y-3">
-                {pkg.features.map((feature: string, index: number) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <div className="flex-1">
-                      <input
-                        type="text"
-                        value={feature}
-                        onChange={(e) => updatePackageFeature(pkg.id, index, e.target.value)}
-                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
-                        placeholder="Enter feature (e.g., Video recording included)"
-                        required
-                      />
-                    </div>
-                    {pkg.features.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removePackageFeature(pkg.id, index)}
-                        className="p-2.5 text-red-500 hover:bg-red-50 rounded-lg"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
+          return (
+            <div key={pkg.id} className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center">
+                    <BanknoteIcon className="w-6 h-6 text-red-600" />
                   </div>
-                ))}
+                  <div>
+                    <h3 className="font-semibold text-gray-800">Package #{pkg.id}</h3>
+                    <p className="text-xs text-gray-500">Configure package details</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  {pkg.isPopular && (
+                    <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs font-semibold rounded-full flex items-center gap-1">
+                      <Crown className="w-3 h-3" />
+                      Popular
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => removeItem(pricingPackages, setPricingPackages, pkg.id)}
+                    disabled={pricingPackages.length <= 1}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                {/* Package Title */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Package Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={pkg.title}
+                    onChange={(e) => updateItem(pricingPackages, setPricingPackages, pkg.id, 'title', e.target.value)}
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none transition-all ${
+                      titleError ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-red-500'
+                    }`}
+                    placeholder="e.g., Basic, Premium, VIP"
+                    required
+                  />
+                  {titleError && (
+                    <p className="text-red-500 text-xs mt-1.5">{titleError}</p>
+                  )}
+                </div>
+
+                {/* Price */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Price (₹) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={pkg.price}
+                    onChange={(e) => updateItem(pricingPackages, setPricingPackages, pkg.id, 'price', parseFloat(e.target.value) || 0)}
+                    className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none transition-all ${
+                      priceError ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-red-500'
+                    }`}
+                    placeholder="0"
+                    required
+                    min="0"
+                  />
+                  {priceError && (
+                    <p className="text-red-500 text-xs mt-1.5">{priceError}</p>
+                  )}
+                </div>
+
+                {/* Original Price */}
+                {/* <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Original Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={pkg.originalPrice || ''}
+                    onChange={(e) => updateItem(pricingPackages, setPricingPackages, pkg.id, 'originalPrice', parseFloat(e.target.value) || '')}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                    placeholder="For showing discount"
+                    min="0"
+                  />
+                </div> */}
+
+                {/* Discount */}
+                {/* <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Discount Display
+                  </label>
+                  <input
+                    type="text"
+                    value={pkg.discount || ''}
+                    onChange={(e) => updateItem(pricingPackages, setPricingPackages, pkg.id, 'discount', e.target.value)}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                    placeholder="e.g., 20% OFF"
+                  />
+                </div> */}
+              </div>
+
+              {/* Features Section */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Package Features <span className="text-red-500">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => addPackageFeature(pkg.id)}
+                    className="text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Feature
+                  </button>
+                </div>
+                
+                {featuresError && (
+                  <p className="text-red-500 text-xs mb-3">{featuresError}</p>
+                )}
+                
+                <div className="space-y-3">
+                  {pkg.features.map((feature: string, featureIndex: number) => {
+                    const featureError = fieldErrors[`pricingPackages.${pkgIndex}.features.${featureIndex}`];
+                    
+                    return (
+                      <div key={featureIndex} className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            value={feature}
+                            onChange={(e) => updatePackageFeature(pkg.id, featureIndex, e.target.value)}
+                            className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-red-500 outline-none transition-all ${
+                              featureError ? 'border-red-500 focus:border-red-500' : 'border-gray-300 focus:border-red-500'
+                            }`}
+                            placeholder="Enter feature (e.g., Video recording included)"
+                            required
+                          />
+                          {featureError && (
+                            <p className="text-red-500 text-xs mt-1.5">{featureError}</p>
+                          )}
+                        </div>
+                        {pkg.features.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removePackageFeature(pkg.id, featureIndex)}
+                            className="p-2.5 text-red-500 hover:bg-red-50 rounded-lg"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
-
-            {/* Popular Package Toggle */}
-            <div className="flex items-center justify-between border-t border-gray-100 pt-4">
-              <div>
-                <h4 className="font-medium text-gray-700 mb-1">Mark as Popular Package</h4>
-                <p className="text-xs text-gray-500">
-                  Only one package can be marked as popular. This will be highlighted to users.
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={pkg.isPopular}
-                  onChange={() => handlePopularPackageChange(pkg.id)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-              </label>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Pricing Strategy Tips */}
-      <div className="mt-8 p-6 bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl">
-        <h3 className="text-lg font-semibold text-gray-800 mb-3">Pricing Strategy Tips</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="space-y-2">
-            <h4 className="font-medium text-red-700">Basic Package</h4>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Entry-level pricing</li>
-              <li>• Essential features only</li>
-              <li>• For budget-conscious users</li>
-              <li>• Good for first-timers</li>
-            </ul>
-          </div>
-          <div className="space-y-2">
-            <h4 className="font-medium text-red-700">Premium Package</h4>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Value for money</li>
-              <li>• Most popular choice</li>
-              <li>• Balanced features</li>
-              <li>• Recommended option</li>
-            </ul>
-          </div>
-          <div className="space-y-2">
-            <h4 className="font-medium text-red-700">VIP Package</h4>
-            <ul className="text-sm text-gray-600 space-y-1">
-              <li>• Premium experience</li>
-              <li>• All features included</li>
-              <li>• Highest price point</li>
-              <li>• For special occasions</li>
-            </ul>
-          </div>
-        </div>
+          );
+        })}
       </div>
     </div>
   );

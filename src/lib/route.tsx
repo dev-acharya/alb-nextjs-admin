@@ -21,7 +21,7 @@ export const RouteName = [
   },
   {
     path: "/pooja",
-    name: "New Pooja",
+    name: "Puja",
     icon: <CustomerRouteSvg />,
   },
   {
