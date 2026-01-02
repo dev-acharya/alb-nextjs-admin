@@ -65,7 +65,7 @@ const BasicInfoTab: React.FC<Props> = ({
                   <div className="space-y-3">
                     <div className="relative mx-auto w-40 h-40 rounded-lg overflow-hidden border-2 border-gray-200 shadow-sm">
                       <Image
-                        src={imagePreview}
+                        src={`${process.env.NEXT_PUBLIC_IMAGE_URL3}${image.file}`}
                         alt="Main preview"
                         fill
                         sizes="160px"

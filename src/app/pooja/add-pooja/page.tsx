@@ -270,12 +270,10 @@ const AddPujaContent = () => {
 
   // Handle next tab
   const handleNextTab = () => {
-    console.log('=== NEXT BUTTON CLICKED ===');
     setHasAttemptedNext(true); // Mark that user tried to go next
     
     const validation = validateCurrentTab();
-    console.log('Validation returned:', validation);
-    console.log('Current fieldErrors state:', fieldErrors);
+
     
     if (validation.success) {
       setActiveTab(prev => Math.min(tabs.length - 1, prev + 1));
@@ -283,7 +281,6 @@ const AddPujaContent = () => {
       setFieldErrors({}); // Clear errors when moving to next tab
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      console.log('Validation failed, staying on current tab');
       console.log('Field errors should be:', fieldErrors);
     }
   };
@@ -347,9 +344,6 @@ const AddPujaContent = () => {
             pujaDetails: pujaData.pujaDetails || '',
             duration: pujaData.duration || '',
           });
-
-
-          console.log(pujaData.mainImage, "dtaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 
           if ( pujaData.mainImage) {
             const imgUrl =  pujaData.mainImage;
@@ -731,7 +725,7 @@ const AddPujaContent = () => {
       editId,
       fieldErrors
     };
-
+console.log("imaggggggggggggggggggggggggggggggggg", props.image.file)
     switch (activeTab) {
       case 0:
         return <BasicInfoTab {...props} />;
@@ -781,7 +775,7 @@ const AddPujaContent = () => {
               {imagePreview && (
                 <div className="relative w-16 h-16 rounded-full overflow-hidden border-4 border-white shadow-lg">
                   <img 
-                    src={imagePreview} 
+                    src={`${process.env.NEXT_PUBLIC_IMAGE_URL3}${image.file}`} 
                     alt="Puja" 
                     className="w-full h-full object-cover"
                   />
