@@ -195,7 +195,7 @@ const AddPujaContent = () => {
     { id: 1, label: 'Details', icon: <BookOpen className="w-4 h-4" /> },
     { id: 2, label: 'Benefits', icon: <Star className="w-4 h-4" /> },
     { id: 3, label: 'Who Should Book', icon: <Users className="w-4 h-4" /> },
-    { id: 4, label: 'Why Perform', icon: <Target className="w-4 h-4" /> },
+    { id: 4, label: 'Why Should You Perform', icon: <Target className="w-4 h-4" /> },
     { id: 5, label: 'Packages', icon: <BanknoteIcon className="w-4 h-4" /> },
     { id: 6, label: 'Testimonials', icon: <MessageSquare className="w-4 h-4" /> },
     { id: 7, label: 'FAQs', icon: <MessageSquare className="w-4 h-4" /> },
@@ -348,8 +348,11 @@ const AddPujaContent = () => {
             duration: pujaData.duration || '',
           });
 
-          if (pujaData.imageUrl || pujaData.mainImage) {
-            const imgUrl = pujaData.imageUrl || pujaData.mainImage;
+
+          console.log(pujaData.mainImage, "dtaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+
+          if ( pujaData.mainImage) {
+            const imgUrl =  pujaData.mainImage;
             setImage({
               file: imgUrl,
               bytes: null,

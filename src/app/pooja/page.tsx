@@ -269,7 +269,7 @@ const Puja: React.FC = () => {
             cell: (row: PujaItem) => (
                 <div className="relative w-[50px] h-[50px]">
                     <Image
-                        src={`${process.env.NEXT_PUBLIC_IMAGE_URL3}${row.imageUrl}`}
+                        src={`${process.env.NEXT_PUBLIC_IMAGE_URL3}${row.mainImage}`}
                         alt={row?.title || 'Puja'}
                         fill
                         className="rounded-full object-cover"
