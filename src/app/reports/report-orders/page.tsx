@@ -104,7 +104,7 @@ interface Filters {
   dateRange: string;
   language: string;
   planName: string;
-  status: string;
+  status: string; // "all" ya fir "pending", "paid", "processing", "delivered"
   astroConsultation: string;
   expressDelivery: string;
   includeDeleted: boolean;
@@ -261,99 +261,115 @@ const ReportOrders: React.FC = () => {
   };
 
   // Fetch filtered stats (sab filters ka)
-  const fetchFilteredStats = async (currentFilters: Filters) => {
-    try {
-      const statsQs = new URLSearchParams();
-      Object.entries(currentFilters).forEach(([k, v]) => {
-        if (v !== "" && v !== null && v !== undefined && 
-            k !== "limit" && k !== "sortBy" && k !== "sortOrder" && k !== "page") {
+const fetchFilteredStats = async (currentFilters: Filters) => {
+  try {
+    const statsQs = new URLSearchParams();
+    Object.entries(currentFilters).forEach(([k, v]) => {
+      if (v !== "" && v !== null && v !== undefined && 
+          k !== "limit" && k !== "sortBy" && k !== "sortOrder" && k !== "page") {
+        // Special handling for status filter
+        if (k === "status") {
+          if (v !== "all") {
+            statsQs.set(k, String(v));
+          }
+        }
+        // For all other filters
+        else {
           statsQs.set(k, String(v));
         }
-      });
-
-      // Clean up empty filters
-      if (currentFilters.astroConsultation === "") statsQs.delete("astroConsultation");
-      if (currentFilters.expressDelivery === "") statsQs.delete("expressDelivery");
-
-      const statsResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders/stats?${statsQs.toString()}`,
-        { headers: getAuthHeaders() }
-      );
-      
-      if (statsResponse.ok) {
-        const statsResult = await statsResponse.json();
-        setStats(statsResult || null);
       }
-    } catch (error) {
-      console.error('Failed to fetch filtered stats:', error);
+    });
+
+    // Clean up empty filters
+    if (currentFilters.astroConsultation === "") statsQs.delete("astroConsultation");
+    if (currentFilters.expressDelivery === "") statsQs.delete("expressDelivery");
+
+    const statsResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders/stats?${statsQs.toString()}`,
+      { headers: getAuthHeaders() }
+    );
+    
+    if (statsResponse.ok) {
+      const statsResult = await statsResponse.json();
+      setStats(statsResult || null);
     }
-  };
+  } catch (error) {
+    console.error('Failed to fetch filtered stats:', error);
+  }
+};
 
   // Create debounced fetch function
-  const debouncedFetch = useMemo(() => 
-    debounce(async (currentFilters: Filters, currentPage: number) => {
-      setLoading(true);
-      try {
-        const qs = new URLSearchParams();
-        
-        // Add all filters to query string
-        Object.entries(currentFilters).forEach(([k, v]) => {
-          if (v !== "" && v !== null && v !== undefined && k !== "dateRange") {
-            if (k === "from" && currentFilters.from && !currentFilters.to) {
-              qs.set("from", currentFilters.from);
-              qs.set("to", currentFilters.from);
-            } else {
+const debouncedFetch = useMemo(() => 
+  debounce(async (currentFilters: Filters, currentPage: number) => {
+    setLoading(true);
+    try {
+      const qs = new URLSearchParams();
+      
+      // Add all filters to query string - EXCLUDE "all" status
+      Object.entries(currentFilters).forEach(([k, v]) => {
+        if (v !== "" && v !== null && v !== undefined && k !== "dateRange") {
+          // Special handling for status filter
+          if (k === "status") {
+            if (v !== "all") {
               qs.set(k, String(v));
             }
           }
-        });
+          // Handle from/to dates
+          else if (k === "from" && currentFilters.from && !currentFilters.to) {
+            qs.set("from", currentFilters.from);
+            qs.set("to", currentFilters.from);
+          } 
+          // For all other filters
+          else {
+            qs.set(k, String(v));
+          }
+        }
+      });
 
-        // Set pagination
-        qs.set("page", String(currentPage));
-        qs.set("limit", String(currentFilters.limit));
+      // Set pagination
+      qs.set("page", String(currentPage));
+      qs.set("limit", String(currentFilters.limit));
 
-        // Clean up boolean filters
-        if (currentFilters.astroConsultation === "") qs.delete("astroConsultation");
-        if (currentFilters.expressDelivery === "") qs.delete("expressDelivery");
-        if (!currentFilters.includeDeleted) qs.delete("includeDeleted");
+      // Clean up boolean filters
+      if (currentFilters.astroConsultation === "") qs.delete("astroConsultation");
+      if (currentFilters.expressDelivery === "") qs.delete("expressDelivery");
+      if (!currentFilters.includeDeleted) qs.delete("includeDeleted");
 
-        // Fetch orders
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders?${qs.toString()}`,
-          { headers: getAuthHeaders() }
-        );
+      // Fetch orders
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders?${qs.toString()}`,
+        { headers: getAuthHeaders() }
+      );
 
-        if (!response.ok) throw new Error("Failed to fetch");
+      if (!response.ok) throw new Error("Failed to fetch");
 
-        const result = await response.json();
-        const data: ApiResponse = result.data || result;
-        
-        setRows(data?.items || []);
-        setPage(data?.page || 1);
-        setTotalPages(data?.pages || 1);
-        setTotalItems(data?.total || 0);
+      const result = await response.json();
+      const data: ApiResponse = result.data || result;
+      
+      setRows(data?.items || []);
+      setPage(data?.page || 1);
+      setTotalPages(data?.pages || 1);
+      setTotalItems(data?.total || 0);
 
-        // Store current page
-        const filterKey = getFilterKey(currentFilters);
-        paginationHistory.current.set(filterKey, data?.page || 1);
+      // Store current page
+      const filterKey = getFilterKey(currentFilters);
+      paginationHistory.current.set(filterKey, data?.page || 1);
 
-        // IMPORTANT: Dono alag-alag stats fetch karo
-        // 1. Date range ke liye (sirf from/to)
-        // 2. Sab filters ke liye
-        await Promise.all([
-          fetchFilteredStats(currentFilters),
-          fetchDateRangeStats(currentFilters.from, currentFilters.to)
-        ]);
+      // Dono alag-alag stats fetch karo
+      await Promise.all([
+        fetchFilteredStats(currentFilters),
+        fetchDateRangeStats(currentFilters.from, currentFilters.to)
+      ]);
 
-      } catch (e) {
-        console.error(e);
-        Swal.fire({ icon: "error", title: "Failed to load orders", timer: 2000, showConfirmButton: false });
-      } finally {
-        setLoading(false);
-      }
-    }, 500),
-    []
-  );
+    } catch (e) {
+      console.error(e);
+      Swal.fire({ icon: "error", title: "Failed to load orders", timer: 2000, showConfirmButton: false });
+    } finally {
+      setLoading(false);
+    }
+  }, 500),
+  []
+);
 
   // Initial fetch
   useEffect(() => {
