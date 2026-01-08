@@ -8,6 +8,7 @@ import MainDatatable from '@/components/common/MainDatatable';
 import { ViewSvg } from '@/components/svgs/page';
 import Swal from 'sweetalert2';
 import { Tooltip } from '@mui/material';
+import { X } from 'lucide-react';
 
 
 const reportPrefixes = [
@@ -404,29 +405,40 @@ const handleEndDateChange = (newDate: string) => {
         isLoading={loading}
         url=""
       />
-      {viewOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto p-6">
-            <h2 className="text-xl font-semibold mb-4">Order Details</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {activeRow && Object.entries(activeRow).map(([k, v]) => (
-                <div key={k}>
-                  <div className="text-xs text-gray-600">{k}</div>
-                  <div className="font-medium text-gray-900">{String(v ?? "")}</div>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-end mt-6">
-              <button
-                onClick={() => setViewOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-              >
-                Close
-              </button>
-            </div>
+     {viewOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto p-6 relative">
+      {/* Close Button - Fixed Top Right */}
+      <button
+        onClick={() => setViewOpen(false)}
+        className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 p-1 rounded-full hover:bg-gray-100 transition-all z-10"
+        aria-label="Close modal"
+      >
+        <X className="h-5 w-5" />
+      </button>
+      
+      <h2 className="text-xl font-semibold mb-4">Order Details</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {activeRow && Object.entries(activeRow).map(([k, v]) => (
+          <div key={k}>
+            <div className="text-xs text-gray-600">{k}</div>
+            <div className="font-medium text-gray-900">{String(v ?? "")}</div>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
+      
+      {/* Keep original close button as secondary option */}
+      <div className="flex justify-end mt-6">
+        <button
+          onClick={() => setViewOpen(false)}
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
