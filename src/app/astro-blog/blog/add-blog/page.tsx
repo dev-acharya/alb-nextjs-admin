@@ -48,6 +48,7 @@ interface ImageState {
 // ---------------------------------------------------------------------
 const IMG_URL = process.env.NEXT_PUBLIC_IMG_URL || '/uploads/';
 const Regex_Accept_Alpha = /^[a-zA-Z\s]+$/;
+const Regex_Accept_Alpha2 = /^[a-zA-Z0-9\s!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+.{3,}$/;
 
 // ---------------------------------------------------------------------
 // Main Component
@@ -202,8 +203,8 @@ const AddEditBlogContent = () => {
     if (!title.trim()) {
       handleInputFieldError('title', 'Please Enter Title');
       isValid = false;
-    } else if (!Regex_Accept_Alpha.test(title)) {
-      handleInputFieldError('title', 'Please Enter Valid Title (letters and spaces only)');
+    } else if (!Regex_Accept_Alpha2.test(title)) {
+      handleInputFieldError('title', 'Please Enter Valid Title (At least 3 characters)');
       isValid = false;
     } else {
       handleInputFieldError('title', null);
