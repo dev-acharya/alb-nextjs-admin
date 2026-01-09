@@ -167,21 +167,7 @@ export const RouteName = [
     ],
   },
 
-  // {
-  //   path: "/skill",
-  //   name: "Skill",
-  //   icon: <SkillRouteSvg />,
-  // },
-  // {
-  //   path: "/remedies",
-  //   name: "Remedies",
-  //   icon: <RemediesRouteSvg />,
-  // },
-  // {
-  //   path: "/main-expertise",
-  //   name: "Main Expertise",
-  //   icon: <MainExpertiesRouteSvg />,
-  // },
+
   // {
   //   path: "/gift",
   //   name: "Gift",
@@ -218,6 +204,29 @@ export const RouteName = [
       },
     ],
   },
+  {
+    name: "Manage",
+    icon: <OtherRouteSvg />,
+    subRoutes: [
+      {
+        path: "/main-expertise",
+        name: "Main Expertise",
+        icon: <MainExpertiesRouteSvg />,
+      },
+      {
+        path: "/skill",
+        name: "Skill",
+        icon: <SkillRouteSvg />,
+      },
+      // {
+      //   path: "/remedies",
+      //   name: "Remedies",
+      //   icon: <RemediesRouteSvg />,
+      // },
+      
+    ],
+  },
+  
   // {
   //   name: "Master",
   //   icon: <OtherRouteSvg />,
