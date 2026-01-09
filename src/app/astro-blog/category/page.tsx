@@ -134,7 +134,7 @@ const CategoryPage: React.FC = () => {
     return filteredData.map((category, index) => ({
       'S.No.': index + 1,
       'Title': category.blog_category,
-      'Created Date': moment(category.createdAt).format('DD MMM YYYY @ hh:mm a'),
+      'Created Date': moment(category.createdAt).format('DD MMM YYYY hh:mm a'),
     }));
   }, [filteredData]);
 
