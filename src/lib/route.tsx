@@ -25,14 +25,20 @@ export const RouteName = [
   //   icon: <CustomerRouteSvg />,
   // },
   {
-    path: "/gemstone-lead",
-    name: "Gemstone Lead",
-    icon: <CustomerRouteSvg />,
-  },
-  {
-    path: "/gemstone-consultation",
-    name: "Gemstone Consultation",
-    icon: <CustomerRouteSvg />,
+    name: "Gemstone",
+    icon: <RatingRouteSvg />,
+    subRoutes: [
+      {
+        path: "/gemstone-lead",
+        name: "Gemstone Lead",
+        icon: <CustomerRouteSvg />,
+      },
+      {
+        path: "/gemstone-consultation",
+        name: "Gemstone Consultation",
+        icon: <CustomerRouteSvg />,
+      },
+    ],
   },
   {
     name: "Reports",
@@ -183,11 +189,7 @@ export const RouteName = [
   //   name: "Recharge",
   //   icon: <RechargeRouteSvg />,
   // },
-  {
-    path: "/review",
-    name: "Review",
-    icon: <RatingRouteSvg />,
-  },
+
   {
     name: "Astroblog",
     icon: <BlogsRouteSvg />,
@@ -208,6 +210,11 @@ export const RouteName = [
     name: "Manage",
     icon: <OtherRouteSvg />,
     subRoutes: [
+      {
+        path: "/review",
+        name: "Review",
+        icon: <RatingRouteSvg />,
+      },
       {
         path: "/main-expertise",
         name: "Main Expertise",

@@ -756,7 +756,7 @@ console.log("imaggggggggggggggggggggggggggggggggg", props.image.file)
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => router.push('/astro-puja/puja')}
+                onClick={() => router.push('/pooja')}
                 className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition"
               >
                 <ArrowLeft className="w-5 h-5" />

@@ -218,6 +218,7 @@ const columns = useMemo(() => [
       </div>
     ),
     width: '70px',  // ✅ Reduced from 80px
+    maxWidth: '140px', 
   },
   {
     name: 'Customer',
@@ -236,55 +237,31 @@ const columns = useMemo(() => [
     width: '380px',  // ✅ Increased from 250px
   },
   {
-    name: 'Email',
-    selector: (row: GemstoneConsultation) => row.email,
-    cell: (row: GemstoneConsultation) => {
-      const email = row?.email?.trim() || "N/A";
-      return (
+  name: 'Email',
+  selector: (row: GemstoneConsultation) => row.email, // ✅ Keep simple selector
+  cell: (row: GemstoneConsultation) => {
+    const email = row?.email?.trim() || "N/A";
+    return (
+      <div className="text-sm text-gray-900 truncate max-w-[220px]"> {/* ✅ Fixed width */}
         <Tooltip title={email}>
-          <div className="text-sm text-gray-900 flex items-center gap-2">
-            <Mail className="w-4 h-4 text-gray-400" />
-            <span className="truncate">{email}</span>
-          </div>
+          <span>{email}</span>
         </Tooltip>
-      );
-    },
-    width: '240px',
+      </div>
+    );
   },
+  width: '240px', // ✅ Increased from 240px
+  minWidth: '240px', // ✅ Add explicit minWidth
+},
   {
     name: 'Date of Birth',
     selector: (row: GemstoneConsultation) => row.DateofBirth,
     cell: (row: GemstoneConsultation) => (
       <div className="text-sm text-gray-900 flex items-center gap-2">
-        <Calendar className="w-4 h-4 text-gray-400" />
+        {/* <Calendar className="w-4 h-4 text-gray-400" /> */}
         {moment(row.DateofBirth).format('DD/MM/YYYY')}
       </div>
     ),
     width: '160px',
-  },
-  {
-    name: 'Payment Status',
-    selector: (row: GemstoneConsultation) => row.Status,
-    cell: (row: GemstoneConsultation) => {
-      const statusDisplay = getStatusDisplay(row.Status);
-      return (
-        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${statusDisplay.bgColor} ${statusDisplay.textColor}`}>
-          {statusDisplay.icon}
-          {statusDisplay.label}
-        </span>
-      );
-    },
-    sortable: true,
-    width: '150px',
-  },
-  {
-    name: 'Action Status',
-    selector: (row: GemstoneConsultation) => row.Action,
-    cell: (row: GemstoneConsultation) => (
-      <div className="text-sm font-medium text-gray-700">{row.Action}</div>
-    ),
-    sortable: true,
-    width: '140px',
   },
   {
     name: 'Created At',
@@ -416,106 +393,80 @@ const columns = useMemo(() => [
 
       {/* View Modal - Simplified */}
       {viewModal.open && viewModal.data && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="bg-red-600 p-6 flex items-center justify-between rounded-t-lg">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-red-600" />
-                </div>
-                <h2 className="text-xl font-bold text-white">
-                  Consultation Details
-                </h2>
-              </div>
-              <button 
-                onClick={closeViewModal} 
-                className="p-2 hover:bg-red-700 rounded-lg transition-colors"
-              >
-                <X className="w-5 h-5 text-white" />
-              </button>
-            </div>
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-lg shadow-2xl max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      {/* Modal Header */}
+      <div className="bg-red-600 p-6 flex items-center justify-between rounded-t-lg">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
+            <User className="w-5 h-5 text-red-600" />
+          </div>
+          <h2 className="text-xl font-bold text-white">
+            Consultation Details
+          </h2>
+        </div>
+        <button 
+          onClick={closeViewModal} 
+          className="p-2 hover:bg-red-700 rounded-lg transition-colors"
+        >
+          <X className="w-5 h-5 text-white" />
+        </button>
+      </div>
 
-            {/* Modal Content */}
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Personal Details */}
-                <div className="bg-white rounded-lg p-5 border border-gray-200">
-                  <h4 className="text-sm font-bold text-gray-900 mb-4 pb-2 border-b flex items-center gap-2">
-                    <User className="w-4 h-4 text-red-600" />
-                    Personal Information
-                  </h4>
-                  <div className="space-y-3">
-                    <DetailRow label="Full Name" value={viewModal.data.name} />
-                    <DetailRow 
-                      label="Email" 
-                      value={viewModal.data.email}
-                    />
-                    <DetailRow 
-                      label="Phone" 
-                      value={viewModal.data.phone}
-                    />
-                    <DetailRow 
-                      label="Date of Birth" 
-                      value={moment(viewModal.data.DateofBirth).format('DD/MM/YYYY')}
-                    />
-                  </div>
-                </div>
-
-                {/* Status Information */}
-                <div className="bg-white rounded-lg p-5 border border-gray-200">
-                  <h4 className="text-sm font-bold text-gray-900 mb-4 pb-2 border-b flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-red-600" />
-                    Status Information
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600 font-medium">Payment Status</span>
-                      {(() => {
-                        const statusDisplay = getStatusDisplay(viewModal.data.Status);
-                        return (
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${statusDisplay.bgColor} ${statusDisplay.textColor}`}>
-                            {statusDisplay.icon}
-                            {statusDisplay.label}
-                          </span>
-                        );
-                      })()}
-                    </div>
-                    <DetailRow label="Action Status" value={viewModal.data.Action} />
-                    <div className="pt-2 border-t">
-                      <span className="text-xs text-gray-600 block mb-1">Consultation ID</span>
-                      <span className="text-xs font-medium text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded break-all">
-                        {viewModal.data._id}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Message - Full Width */}
-              <div className="bg-white rounded-lg p-5 border border-gray-200 mt-6">
-                <h4 className="text-sm font-bold text-gray-900 mb-4 pb-2 border-b flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-red-600" />
-                  Consultation Message
-                </h4>
-                <div className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded border border-gray-200">
-                  {viewModal.data.message}
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="bg-gray-50 px-6 py-4 border-t flex justify-end gap-3 rounded-b-lg">
-              <button
-                onClick={closeViewModal}
-                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
-              >
-                Close
-              </button>
-            </div>
+      {/* Modal Content */}
+      <div className="p-6">
+        {/* Personal Information - Full Width */}
+        <div className="bg-white rounded-lg p-5 border border-gray-200 mb-6">
+          <h4 className="text-sm font-bold text-gray-900 mb-4 pb-2 border-b flex items-center gap-2">
+            <User className="w-4 h-4 text-red-600" />
+            Personal Information
+          </h4>
+          <div className="space-y-3">
+            <DetailRow label="Full Name" value={viewModal.data.name} />
+            <DetailRow 
+              label="Email" 
+              value={viewModal.data.email}
+            />
+            <DetailRow 
+              label="Phone" 
+              value={viewModal.data.phone}
+            />
+            <DetailRow 
+              label="Date of Birth" 
+              value={moment(viewModal.data.DateofBirth).format('DD/MM/YYYY')}
+            />
+            <DetailRow 
+              label="Consultation ID" 
+              value={viewModal.data._id}
+            />
           </div>
         </div>
-      )}
+
+        {/* Consultation Message - Full Width */}
+        <div className="bg-white rounded-lg p-5 border border-gray-200">
+          <h4 className="text-sm font-bold text-gray-900 mb-4 pb-2 border-b flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-red-600" />
+            Consultation Message
+          </h4>
+          <div className="text-sm text-gray-700 whitespace-pre-wrap bg-gray-50 p-4 rounded border border-gray-200">
+            {viewModal.data.message}
+          </div>
+        </div>
+      </div>
+
+      {/* Modal Footer */}
+      <div className="bg-gray-50 px-6 py-4 border-t flex justify-end gap-3 rounded-b-lg">
+        <button
+          onClick={closeViewModal}
+          className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </>
   );
 }
