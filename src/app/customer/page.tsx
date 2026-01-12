@@ -402,11 +402,11 @@ const handleDeleteToggle = async (customer: Customer) => {
       selector: (row: Customer) => row?.phoneNumber,
       width: '130px'
     },
-    {
-      name: "Wallet",
-      selector: (row: Customer) => IndianRupee(row?.wallet_balance) || '',
-      width: '130px'
-    },
+    // {
+    //   name: "Wallet",
+    //   selector: (row: Customer) => IndianRupee(row?.wallet_balance) || '',
+    //   width: '130px'
+    // },
     {
       name: "D.O.B",
       selector: (row: Customer) => row?.dateOfBirth ? moment(row.dateOfBirth).format('DD/MM/YYYY') : '',

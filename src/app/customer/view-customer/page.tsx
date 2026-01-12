@@ -324,9 +324,9 @@ function ViewCustomerReview() {
             <div className="text-gray-600 text-sm">
               <span className="font-medium">Location:</span> {formatAddress()}
             </div>
-            <div className="text-gray-800 font-medium">
+            {/* <div className="text-gray-800 font-medium">
               <span className="font-medium">Wallet:</span> {IndianRupee(wallet_balance)}
-            </div>
+            </div> */}
           </div>
 
           {/* Details Section */}

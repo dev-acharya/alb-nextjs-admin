@@ -230,16 +230,16 @@ export const RouteName = [
         name: "Remedies",
         icon: <RemediesRouteSvg />,
       },
-      // {
-      //   path: "/language",
-      //   name: "Language",
-      //   icon: <LanguageRouteSvg />,
-      // },
-      // {
-      //   path: "/master/slot-management",
-      //   name: "Slot Management",
-      //   icon: <OtherRouteSvg />,
-      // },
+      {
+        path: "/language",
+        name: "Language",
+        icon: <LanguageRouteSvg />,
+      },
+      {
+        path: "/master/slot-management",
+        name: "Slot Management",
+        icon: <OtherRouteSvg />,
+      },
       {
         path: "/master/platform-charges",
         name: "Platform Charge",
@@ -301,11 +301,11 @@ export const RouteName = [
   //     // },
   //   ],
   // },
-  // {
-  //   path: "/reports/admin-earning",
-  //   name: "Admin Earning",
-  //   icon: <OtherRouteSvg />,
-  // },
+  {
+    path: "/reports/admin-earning",
+    name: "Admin Earning",
+    icon: <OtherRouteSvg />,
+  },
 
 
   // {
