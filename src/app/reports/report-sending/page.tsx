@@ -14,9 +14,10 @@ const ReportOrders: React.FC = () => {
     q: "",
     from: "",
     to: "",
-    language: "",
+    language: "all",
     planName: "life changing",
-    status: "all",
+    status: "paid",
+    reportDeliveryStatus: "all",
     sortBy: "createdAt",
     sortOrder: "desc",
     limit: 100,
@@ -43,78 +44,85 @@ const ReportOrders: React.FC = () => {
     try {
       const qs = new URLSearchParams();
       
-      // Build base query parameters
-      Object.entries(currentFilters).forEach(([k, v]) => {
-        if (v && v !== "all" && k !== "selectFirstN") {
-          if (k === "from" && currentFilters.from && !currentFilters.to) {
-            qs.set("from", currentFilters.from);
-            qs.set("to", currentFilters.from);
-          } else {
-            qs.set(k, String(v));
-          }
+      const params: Record<string, string> = {
+        q: currentFilters.q,
+        language: currentFilters.language,
+        reportDeliveryStatus: currentFilters.reportDeliveryStatus,
+        sortBy: currentFilters.sortBy,
+        sortOrder: currentFilters.sortOrder,
+        page: currentPage.toString(),
+        limit: currentFilters.limit.toString(),
+      };
+
+      if (currentFilters.from) {
+        params.from = currentFilters.from;
+      }
+      if (currentFilters.to) {
+        params.to = currentFilters.to;
+      }
+      if (currentFilters.from && !currentFilters.to) {
+        params.date = currentFilters.from;
+        delete params.from;
+        delete params.to;
+      }
+
+      // ✅ selectFirstN: fetch all non-delivered
+      if (currentFilters.selectFirstN && currentFilters.selectFirstN > 0) {
+        params.sortBy = "createdAt";
+        params.sortOrder = "asc";
+      }
+
+      Object.entries(params).forEach(([key, value]) => {
+        if (value && value !== "all") {
+          qs.set(key, value);
         }
       });
 
-      // When selectFirstN is active
-      if (currentFilters.selectFirstN && currentFilters.selectFirstN > 0) {
-        // Force parameters for selecting oldest pending orders
-        qs.set("sortBy", "createdAt");
-        qs.set("sortOrder", "asc");
-        qs.set("limit", String(currentFilters.selectFirstN * 3)); // Fetch extra to filter client-side
-        qs.set("page", "1");
-        
-        // Try multiple possible parameter names for pending status
-        qs.set("reportDeliveryStatus", "pending");
-        qs.delete("status"); // Remove general status filter
-      } else {
-        qs.set("page", String(currentPage));
-        qs.set("limit", String(currentFilters.limit));
+      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-reports?${qs.toString()}`;
+      console.log("🔍 Fetching from:", apiUrl);
+
+      const response = await fetch(apiUrl, { 
+        headers: getAuthHeaders() 
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch: ${response.status} - ${errorText}`);
       }
 
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/life-journey-orders?${qs.toString()}`;
-      console.log("🔍 API URL:", apiUrl); // Debug log
-
-      const response = await fetch(apiUrl, { headers: getAuthHeaders() });
-
-      if (!response.ok) throw new Error("Failed to fetch");
-
-      const result = await response.json();
-      const data: ApiResponse = result.data || result;
+      const result: ApiResponse = await response.json();
       
-      let finalItems = data?.items || [];
+      if (!result.success) {
+        throw new Error(result.message || "API returned error");
+      }
 
-      // CLIENT-SIDE FILTER: Remove delivered orders when selectFirstN is active
+      const { items, pagination } = result.data;
+      
+      // ✅ Filter & slice for selectFirstN
+      let filteredItems = items || [];
       if (currentFilters.selectFirstN && currentFilters.selectFirstN > 0) {
-        console.log("📊 Before filtering:", finalItems.length, "orders");
-        console.log("🔍 Sample statuses:", finalItems.slice(0, 3).map(o => ({
-          id: o.orderID,
-          status: o.reportDeliveryStatus
-        })));
-
-        // Filter out delivered orders
-        finalItems = finalItems.filter(order => {
-          const deliveryStatus = order.reportDeliveryStatus?.toLowerCase();
-          return !deliveryStatus || deliveryStatus === 'pending' || deliveryStatus === 'failed';
-        });
-
-        console.log("✅ After filtering:", finalItems.length, "orders (pending only)");
-
-        // Take only the requested number
-        finalItems = finalItems.slice(0, currentFilters.selectFirstN);
+        const nonDeliveredItems = filteredItems.filter(
+          order => order.reportDeliveryStatus !== 'delivered'
+        );
+        filteredItems = nonDeliveredItems.slice(0, currentFilters.selectFirstN);
       }
       
-      setRows(finalItems);
-      setPage(data?.page || 1);
-      setTotalPages(data?.pages || 1);
-      setTotalItems(finalItems.length); // Show filtered count
-    } catch (e) {
-      console.error("❌ Fetch error:", e);
+      setRows(filteredItems);
+      setPage(pagination?.page || 1);
+      setTotalPages(pagination?.pages || 1);
+      setTotalItems(pagination?.total || 0);
+      
+    } catch (error) {
+      console.error("❌ Fetch error:", error);
       Swal.fire({ 
         icon: "error", 
         title: "Failed to load orders", 
-        timer: 2000, 
+        text: error instanceof Error ? error.message : "Unknown error",
+        timer: 3000, 
         showConfirmButton: false 
       });
+      setRows([]);
+      setTotalItems(0);
     } finally {
       setLoading(false);
     }
@@ -141,9 +149,10 @@ const ReportOrders: React.FC = () => {
       q: "",
       from: "",
       to: "",
-      language: "",
-      planName: "",
-      status: "all",
+      language: "all",
+      planName: "life changing",
+      status: "paid",
+      reportDeliveryStatus: "all",
       sortBy: "createdAt",
       sortOrder: "desc",
       limit: 100,
@@ -153,24 +162,137 @@ const ReportOrders: React.FC = () => {
     setPage(1);
   };
 
-  // नया function: Reports process करने के लिए
-  const handleProcessReports = async (reportIds: string[]) => {
+  // ReportOrders.tsx me yeh function add karo:
+const handleMarkAsDelivered = async (orderId: string) => {
+  console.log(orderId, "orderissssssssssssssssssssssssssssssssssssssssddddddddddd")
+  try {
+    const result = await Swal.fire({
+      title: 'Mark as Delivered?',
+      text: 'This will manually mark the failed report as delivered.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, mark as delivered!',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!result.isConfirmed) return;
+
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/admin/update-status/${orderId}`,
+      {
+        method: 'PUT',
+        headers: getAuthHeaders()
+      }
+    );
+
+    if (!response.ok) throw new Error('Failed to update');
+
+    const data = await response.json();
+    
+    await Swal.fire({
+      icon: 'success',
+      title: '✅ Marked as Delivered!',
+      text: data.message,
+      timer: 2000,
+      showConfirmButton: false
+    });
+
+    // Refresh orders
+    fetchOrders(filters, page);
+
+  } catch (error) {
+    console.error('Error marking as delivered:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Failed',
+      text: 'Could not mark as delivered',
+      timer: 2000
+    });
+  }
+};
+
+  // ✅ Process single report (for failed retry)
+  const handleProcessSingle = async (reportId: string) => {
     try {
-      // SweetAlert confirmation
       const result = await Swal.fire({
-        title: `Process ${reportIds.length} Reports?`,
-        text: "This will trigger report generation for all selected pending orders.",
+        title: "Resend Report?",
+        text: "This will retry generating this failed report.",
         icon: "question",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, Process Now!",
-        cancelButtonText: "Cancel"
+        confirmButtonText: "Yes, Resend!",
       });
 
       if (!result.isConfirmed) return;
 
-      // API call
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/life-journey-report/process-lcr-reports`, {
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ reportIds: [reportId] })
+      });
+
+      if (!response.ok) throw new Error("Failed to process report");
+
+      await Swal.fire({
+        icon: "success",
+        title: "Report Queued!",
+        text: "Report generation has been restarted.",
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      fetchOrders(filters, page);
+
+    } catch (error) {
+      console.error("Error processing report:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Failed",
+        text: "Could not process the report.",
+        timer: 2000
+      });
+    }
+  };
+
+  // ✅ Process all non-delivered reports
+  const handleProcessAll = async () => {
+    const processableOrders = rows.filter(
+      row => row._id && row.reportDeliveryStatus !== 'delivered'
+    );
+
+    if (processableOrders.length === 0) {
+      Swal.fire({
+        icon: "info",
+        title: "No Reports to Process",
+        text: "All visible reports are already delivered.",
+        timer: 2000
+      });
+      return;
+    }
+
+    try {
+      const result = await Swal.fire({
+        title: `Process ${processableOrders.length} Reports?`,
+        html: `
+          <div class="text-left">
+            <p><strong>Pending:</strong> ${processableOrders.filter(r => r.reportDeliveryStatus === 'pending').length}</p>
+            <p><strong>Failed:</strong> ${processableOrders.filter(r => r.reportDeliveryStatus === 'failed').length}</p>
+          </div>
+        `,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, Process All!",
+      });
+
+      if (!result.isConfirmed) return;
+
+      const reportIds = processableOrders.map(order => order._id!);
+
       const response = await fetch(`https://alb.gennextit.com/api/life-journey-report/process-lcr-reports`, {
         method: "POST",
         headers: getAuthHeaders(),
@@ -179,18 +301,14 @@ const ReportOrders: React.FC = () => {
 
       if (!response.ok) throw new Error("Failed to process reports");
 
-      const data = await response.json();
-      
-      // Success message
       await Swal.fire({
         icon: "success",
-        title: "Reports Processing Started!",
-        text: `${reportIds.length} reports have been queued for generation.`,
+        title: "Processing Started!",
+        text: `${reportIds.length} reports queued for generation.`,
         timer: 3000,
         showConfirmButton: false
       });
 
-      // Refresh the orders list
       fetchOrders(filters, page);
 
     } catch (error) {
@@ -198,51 +316,55 @@ const ReportOrders: React.FC = () => {
       Swal.fire({
         icon: "error",
         title: "Processing Failed",
-        text: "There was an error while processing the reports.",
+        text: "There was an error while processing reports.",
         timer: 3000
       });
     }
   };
 
+  // ✅ Count stats
+  const pendingCount = rows.filter(r => r.reportDeliveryStatus === 'pending').length;
+  const failedCount = rows.filter(r => r.reportDeliveryStatus === 'failed').length;
+  const deliveredCount = rows.filter(r => r.reportDeliveryStatus === 'delivered').length;
+
   return (
     <div className="p-4 bg-white rounded-lg shadow-sm">
       <h1 className="font-bold text-2xl mb-4">Report Automation</h1>
       
-      {/* Enhanced info banner when selectFirstN is active */}
-      {/* {filters.selectFirstN && filters.selectFirstN > 0 && (
-        <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-green-100 border-l-4 border-green-600 rounded-lg shadow-sm">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">✅</span>
-            <div>
-              <p className="text-sm font-bold text-green-800">
-                Showing {rows.length} oldest PENDING orders
-              </p>
-              <p className="text-xs text-green-700 mt-1">
-                📌 Sorted by: <span className="font-semibold">createdAt (oldest first)</span>
-              </p>
-              <p className="text-xs text-green-700">
-                🚫 Excluded: <span className="font-semibold">All delivered orders</span>
-              </p>
-              <p className="text-xs text-green-700">
-                📊 Status filter: <span className="font-semibold">Pending & Failed only</span>
-              </p>
-              {rows.length > 0 && (
-                <p className="text-xs text-green-700 mt-2">
-                  ⚡ Process all {rows.length} reports at once using the purple button above.
-                </p>
-              )}
+      {/* Stats Banner */}
+      {rows.length > 0 && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-4 flex-wrap">
+              <span className="font-semibold text-blue-800">
+                Showing {rows.length} of {totalItems} orders
+              </span>
+              <div className="flex gap-3 text-sm">
+                
+                <span className="px-2 py-1 bg-red-100 text-red-700 rounded">
+                  Failed: {failedCount}
+                </span>
+                <span className="px-2 py-1 bg-green-100 text-green-700 rounded">
+                  Delivered: {deliveredCount}
+                </span>
+              </div>
             </div>
+            {filters.selectFirstN && filters.selectFirstN > 0 && (
+              <div className="text-sm text-green-700 font-medium">
+                ⚡ First {rows.length} non-delivered reports
+              </div>
+            )}
           </div>
         </div>
-      )} */}
+      )}
       
       <FilterBar
         filters={filters}
         onChange={handleFilterChange}
         onRefresh={handleRefresh}
         onReset={handleReset}
-        onProcessReports={handleProcessReports}
-        orders={rows} // Current orders data pass करें
+        onProcessAll={handleProcessAll}
+        canProcessAll={pendingCount + failedCount > 0}
       />
 
       <OrdersTable
@@ -254,10 +376,11 @@ const ReportOrders: React.FC = () => {
           setActiveRow(row);
           setViewOpen(true);
         }}
+        onProcessSingle={handleProcessSingle}
+        onMarkAsDelivered={handleMarkAsDelivered}
       />
 
-      {/* Hide pagination when selectFirstN is active */}
-      {!filters.selectFirstN && (
+      {!filters.selectFirstN && totalPages > 1 && (
         <Pagination
           currentPage={page}
           totalPages={totalPages}

@@ -1,59 +1,3 @@
-export interface Order {
-  _id: string;
-  orderID: string;
-  name: string;
-  email: string;
-  whatsapp: string;
-  gender: string | null;
-  reportLanguage: string;
-  dateOfBirth: string;
-  timeOfBirth: string | null;
-  placeOfBirth: string | null;
-  planName: string;
-  amount: string;
-  paymentAt: string;
-  paymentTxnId: string;
-  razorpayOrderId: string;
-  orderFingerprint: string;
-  astroConsultation: boolean;
-  expressDelivery: boolean;
-  reportDeliveryStatus?: 'pending' | 'delivered' | 'failed';
-  drivePdfUploaded?: boolean;
-  driveFileId?: string;
-  driveFileUrl?: string;
-  driveUploadedAt?: string;
-  reportDeliveryAttemptedAt?: string;
-  reportDeliveryCompletedAt?: string;
-  reportGenerationError?: string;
-  driveUploadError?: string;
-  emailSendError?: string;
-  status: "pending" | "paid" | "processing" | "delivered";
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ApiResponse {
-  page: number;
-  limit: number;
-  total: number;
-  pages: number;
-  items: Order[];
-}
-
-// export interface Filters {
-//   q: string;
-//   from: string;
-//   to: string;
-//   language: string;
-//   planName: string;
-//   status: string;
-//   sortBy: string;
-//   sortOrder: "asc" | "desc";
-//   limit: number;
-// }
-
-
-// types.ts - Add this to your existing types file
 export interface Filters {
   q: string;
   from: string;
@@ -61,8 +5,100 @@ export interface Filters {
   language: string;
   planName: string;
   status: string;
+  reportDeliveryStatus: string; // ✅ NEW: Report delivery status
   sortBy: string;
   sortOrder: "asc" | "desc";
   limit: number;
-  selectFirstN?: number; // NEW: For selecting first N rows
+  selectFirstN?: number;
+  source?: string; // ✅ NEW: Source filter
+}
+
+export interface Order {
+  _id: string;
+  orderID: string;
+  name: string;
+  email: string;
+  whatsapp: string;
+  gender: string;
+  reportLanguage: string;
+  dateOfBirth: string;
+  timeOfBirth: string | null;
+  placeOfBirth: string | null;
+  placeOfBirthPincode: string | null;
+  paymentTxnId: string | null;
+  amount: string;
+  paymentAt: string | null;
+  source: string;
+  planName: string;
+  astroConsultation: boolean;
+  consultationDate: string | null;
+  consultationTime: string | null;
+  problemType: string | null;
+  partnerName: string | null;
+  partnerDateOfBirth: string | null;
+  partnerTimeOfBirth: string | null;
+  partnerPlaceOfBirth: string | null;
+  partnerPlaceOfBirthPincode: string | null;
+  expressDelivery: boolean;
+  questionOne: string | null;
+  questionTwo: string | null;
+  assignedAstrologerId: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
+  orderFingerprint: string;
+  razorpayOrderId: string;
+  attemptCount: number;
+  lastAttemptAt: string;
+  expiresAt: string;
+  deletedAt: string | null;
+  status: "pending" | "paid" | "processing" | "delivered";
+  drivePdfUploaded: boolean;
+  driveFileId: string | null;
+  driveFileUrl: string | null;
+  driveUploadedAt: string | null;
+  reportGenerationError: string | null;
+  driveUploadError: string | null;
+  emailSendError: string | null;
+  reportDeliveryStatus: "pending" | "delivered" | "failed";
+  reportDeliveryAttemptedAt: string | null;
+  reportDeliveryCompletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  formattedCreatedAt?: string;
+  formattedPaymentAt?: string;
+  formattedDeliveryAt?: string;
+  paymentStatus?: string;
+  selected?: boolean; // ✅ NEW: For frontend selection
+
+}
+
+export interface ApiResponse {
+  success: boolean;
+  message: string;
+  filters?: {
+    applied: any;
+    base: any;
+  };
+  data: {
+    items: Order[];
+    pagination: {
+      page: number;
+      pages: number;
+      total: number;
+      limit: number;
+      hasMore: boolean;
+      showing: number;
+    };
+    summary?: {
+      total: number;
+      byDeliveryStatus?: {
+        pending: number;
+        delivered: number;
+        failed: number;
+      };
+    };
+  };
 }

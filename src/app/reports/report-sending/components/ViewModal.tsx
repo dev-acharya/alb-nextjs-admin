@@ -131,7 +131,7 @@ export const ViewModal: React.FC<Props> = ({ order, onClose }) => {
                       📎 {String(value).slice(0, 50)}...
                     </a>
                   ) : (
-                    prefix + formatValue(value, key)
+                    formatValue(value, key)
                   )}
                 </div>
               </div>
