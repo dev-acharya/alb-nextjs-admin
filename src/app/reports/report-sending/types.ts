@@ -62,7 +62,7 @@ export interface Order {
   reportGenerationError: string | null;
   driveUploadError: string | null;
   emailSendError: string | null;
-  reportDeliveryStatus: "pending" | "delivered" | "failed";
+  reportDeliveryStatus: "pending" | "delivered" | "failed" | "processing";
   reportDeliveryAttemptedAt: string | null;
   reportDeliveryCompletedAt: string | null;
   createdAt: string;

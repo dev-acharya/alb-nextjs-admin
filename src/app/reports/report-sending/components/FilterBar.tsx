@@ -70,6 +70,8 @@ export const FilterBar: React.FC<Props> = ({
         className="px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 min-w-[140px]"
       >
         <option value="all">All Status</option>
+        <option value="pending">Pending</option>
+        <option value="processing">Processing</option>
         <option value="delivered">Delivered</option>
         <option value="failed">Failed</option>
       </select>
@@ -124,7 +126,7 @@ export const FilterBar: React.FC<Props> = ({
           onClick={onRefresh}
           className="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
         >
-          🔄 Refresh
+          Refresh
         </button>
         
         <button

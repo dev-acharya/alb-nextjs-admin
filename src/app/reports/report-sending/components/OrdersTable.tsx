@@ -3,7 +3,7 @@ import moment from "moment";
 import { Order } from "../types";
 import { ViewSvg } from "@/components/svgs/page";
 import MainDatatable from "@/components/common/MainDatatable";
-import { SendHorizonal } from "lucide-react";
+import { Pen, RotateCw, SendHorizonal } from "lucide-react";
 import { SendAndArchive } from "@mui/icons-material";
 
 interface Props {
@@ -95,6 +95,13 @@ export const OrdersTable: React.FC<Props> = ({
               </span>
             );
           }
+          if (!deliveryStatus || deliveryStatus === 'processing') {
+            return (
+              <span className="px-2 py-1 bg-yellow-100 text-red-700 rounded-full text-xs font-medium">
+                Processing
+              </span>
+            );
+          }
           
           if (deliveryStatus === 'delivered') {
             return (
@@ -120,7 +127,7 @@ export const OrdersTable: React.FC<Props> = ({
           if (deliveryStatus === 'failed') {
             return (
               <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
-                ❌ Failed
+                Failed
               </span>
             );
           }
@@ -166,18 +173,18 @@ export const OrdersTable: React.FC<Props> = ({
               <>
                 <button
                   onClick={() => onProcessSingle(row._id!)}
-                  className="text-orange-600 hover:text-orange-800"
+                  className="h-4 w-4 flex items-center justify-center font-bold"
                   title="Retry Failed Report"
                 >
-                  <SendAndArchive/>
+                  <RotateCw/>
                 </button>
                 
                 <button
                   onClick={() => onMarkAsDelivered(row._id!)}
-                  className="text-green-600 hover:text-green-800"
+                  className="h-4 w-4 flex items-center justify-center font-bold"
                   title="Mark as Delivered"
                 >
-                  <SendHorizonal/>
+                  <Pen/>
                 </button>
               </>
             )}
