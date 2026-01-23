@@ -21,6 +21,7 @@ interface DubaiConsultation {
   email: string;
   whatsappNumber: string;
   concern: string;
+  countryCode: string;
   paymentStatus: string;
   razorpayOrderId: string;
   createdAt: string;
@@ -99,12 +100,17 @@ const filteredData = useMemo(() => {
   {
     name: "Name",
     selector: (row: any) => row.name,
-    maxWidth: "160px",
+    minWidth: "170px",
   },
   {
     name: "Email",
     selector: (row: any) => row.email,
-    maxWidth: "260px",
+    minWidth: "200px",
+  },
+  {
+    name: "Country Code",
+    selector: (row: any) => row.countryCode,
+    maxWidth: "100px",
   },
   {
     name: "WhatsApp",
@@ -220,6 +226,10 @@ selector: (row: any) =>
               <div className="space-y-4">
                 <DetailRow label="Name" value={viewModal.data.name} />
                 <DetailRow label="Email" value={viewModal.data.email} />
+                <DetailRow
+                  label="Country Code"
+                  value={viewModal.data.countryCode}
+                />
                 <DetailRow
                   label="WhatsApp Number"
                   value={viewModal.data.whatsappNumber}
