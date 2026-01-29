@@ -128,7 +128,7 @@ export const ViewModal: React.FC<Props> = ({ order, onClose }) => {
                       className="text-blue-600 hover:text-blue-800 truncate max-w-[250px] block"
                       title={String(value)}
                     >
-                      📎 {String(value).slice(0, 50)}...
+                      {String(value).slice(0, 50)}...
                     </a>
                   ) : (
                     formatValue(value, key)
