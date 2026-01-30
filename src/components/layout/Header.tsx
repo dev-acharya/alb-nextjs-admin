@@ -69,7 +69,7 @@ function PasswordModal({ isOpen, onClose }: PasswordModalProps) {
         return;
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/change-password`, {
+      const response = await fetch(`/api/admin/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -266,7 +266,7 @@ export default function Header({ isSidebarOpen, setIsSidebarOpen }: HeaderProps)
     if (result.isConfirmed) {
       try {
         // STEP 1: Call logout API to clear cookies FIRST
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/logout`, {
+        const response = await fetch(`/api/admin/logout`, {
           method: 'POST',
           credentials: 'include',
           cache: 'no-store', // Prevent caching

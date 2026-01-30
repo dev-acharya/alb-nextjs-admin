@@ -76,7 +76,7 @@ export default function SuperAdminDashboard() {
   // Fetch current user info
   const fetchUserInfo = useCallback(async () => {
     try {
-      const response = await fetch(`${API_URL}/api/admin/me`, {
+      const response = await fetch('/api/admin/me', {
         method: 'GET',
         credentials: 'include'
       });
@@ -94,7 +94,7 @@ export default function SuperAdminDashboard() {
   const fetchAdmins = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/admin/admins`, {
+      const response = await fetch(`/api/admin/admins`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -158,7 +158,7 @@ export default function SuperAdminDashboard() {
 
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/admin/create-admin`, {
+      const response = await fetch(`/api/admin/create-admin`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -229,7 +229,7 @@ export default function SuperAdminDashboard() {
 
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/admin/change-password`, {
+      const response = await fetch(`/api/admin/change-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -292,7 +292,7 @@ export default function SuperAdminDashboard() {
 
     try {
       setLoading(true);
-      const response = await fetch(`${API_URL}/api/admin/change-admin-password`, {
+      const response = await fetch(`/api/admin/change-admin-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -368,7 +368,7 @@ export default function SuperAdminDashboard() {
     if (result.isConfirmed) {
       try {
         setLoading(true);
-        const response = await fetch(`${API_URL}/api/admin/delete-admin/${adminId}`, {
+        const response = await fetch(`/api/admin/delete-admin/${adminId}`, {
           method: 'DELETE',
           credentials: 'include'
         });
@@ -413,7 +413,7 @@ export default function SuperAdminDashboard() {
 
     if (result.isConfirmed) {
       try {
-        await fetch(`${API_URL}/api/admin/logout`, {
+        await fetch(`/api/admin/logout`, {
           method: 'POST',
           credentials: 'include'
         });

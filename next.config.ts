@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    // for maximum compatibility
+    // your existing images config unchanged...
     domains: [
       'images.unsplash.com',
       'unsplash.com',
@@ -28,14 +28,13 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
-    // Optional: Image optimization settings
     formats: ['image/webp'],
-    minimumCacheTTL: 60, // 60 seconds
+    minimumCacheTTL: 60,
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
- 
+
   async headers() {
     return [
       {
@@ -54,7 +53,16 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  //  optional: large images
+  // ✅ ADD THIS PROXY REWRITES
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',  // Frontend calls: /api/admin/login
+        destination: `${process.env.API_URL}/api/:path*`
+      }
+    ];
+  },
+
   experimental: {
     optimizeCss: true,
   },

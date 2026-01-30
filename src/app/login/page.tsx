@@ -23,7 +23,7 @@ export default function AuthPage() {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const response = await fetch(`${API_URL}/api/admin/me`, {
+        const response = await fetch('/api/admin/me', {
           method: 'GET',
           credentials: 'include'
         });
@@ -130,7 +130,7 @@ export default function AuthPage() {
       if (isLogin) {
         // Login request
         
-        const response = await fetch(`${API_URL}/api/admin/login`, {
+        const response = await fetch(`/api/admin/login`, {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
