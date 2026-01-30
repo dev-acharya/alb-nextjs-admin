@@ -1,13 +1,13 @@
 // app/verify-password-change/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Swal from 'sweetalert2';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
-export default function VerifyPasswordChange() {
+function VerifyPasswordChangeComponent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
@@ -112,3 +112,14 @@ export default function VerifyPasswordChange() {
     </div>
   );
 }
+
+
+const VerifyPasswordChange = () => {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center min-h-screen"><div className="text-xl text-gray-600">Loading...</div></div>}>
+      <VerifyPasswordChangeComponent />
+    </Suspense>
+  );
+};
+
+export default VerifyPasswordChange;
