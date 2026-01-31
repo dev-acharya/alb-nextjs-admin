@@ -29,9 +29,12 @@ export default function ManageRoutes() {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
+  const [showAddToFolderModal, setShowAddToFolderModal] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [selectedRoutes, setSelectedRoutes] = useState<string[]>([]);
   const [folderName, setFolderName] = useState('');
+  const [selectedFolderId, setSelectedFolderId] = useState<string>('');
+  const [availableFolders, setAvailableFolders] = useState<Route[]>([]);
   const [currentRoute, setCurrentRoute] = useState<Partial<Route>>({
     name: '', path: '', icon: 'OtherRouteSvg', order: 0, description: ''
   });
@@ -69,6 +72,9 @@ export default function ManageRoutes() {
     ...(route.subRoutes || [])
   ]);
 
+  // Get top-level folders only
+  const topLevelFolders = routes.filter(route => !route.parentRoute && !route.path);
+
   // Create folder from selected routes
   const handleCreateFolder = async () => {
     if (!folderName.trim() || selectedRoutes.length === 0) {
@@ -102,6 +108,57 @@ export default function ManageRoutes() {
       } else {
         const data = await response.json();
         throw new Error(data.error || 'Failed to create folder');
+      }
+    } catch (error: any) {
+      Swal.fire({
+        icon: 'error', title: 'Error', text: error.message,
+        confirmButtonColor: '#dc2626'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Add route to existing folder
+  const handleAddToFolder = async () => {
+    if (selectedRoutes.length !== 1 || !selectedFolderId) {
+      Swal.fire({
+        icon: 'warning', 
+        title: 'Invalid Selection',
+        text: 'Select exactly ONE route and choose a folder',
+        confirmButtonColor: '#dc2626'
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/sidebar/add-to-folder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          folderId: selectedFolderId,
+          routeId: selectedRoutes[0]
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        Swal.fire({
+          icon: 'success', 
+          title: 'Route Added!',
+          text: data.message || 'Route successfully added to folder',
+          confirmButtonColor: '#dc2626', 
+          timer: 2000
+        });
+        setShowAddToFolderModal(false);
+        setSelectedRoutes([]);
+        setSelectedFolderId('');
+        fetchRoutes();
+      } else {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to add route to folder');
       }
     } catch (error: any) {
       Swal.fire({
@@ -233,6 +290,33 @@ export default function ManageRoutes() {
     setShowFolderModal(true);
   };
 
+  const handleAddToFolderClick = () => {
+    if (selectedRoutes.length !== 1) {
+      Swal.fire({
+        icon: 'info', 
+        title: 'Select One Route',
+        text: 'Please select exactly ONE route to add to a folder',
+        confirmButtonColor: '#dc2626'
+      });
+      return;
+    }
+
+    // Filter top-level folders only
+    const folders = routes.filter(route => !route.path && !route.parentRoute);
+    if (folders.length === 0) {
+      Swal.fire({
+        icon: 'info', 
+        title: 'No Folders',
+        text: 'Create some folders first using "Group into Folder"',
+        confirmButtonColor: '#dc2626'
+      });
+      return;
+    }
+
+    setAvailableFolders(folders);
+    setShowAddToFolderModal(true);
+  };
+
   const handleEdit = (route: Route) => {
     setEditMode(true);
     setCurrentRoute(route);
@@ -276,6 +360,15 @@ export default function ManageRoutes() {
             >
               <FaFolder className="mr-2 h-4 w-4" />
               Group into Folder
+            </button>
+            <button
+              onClick={handleAddToFolderClick}
+              disabled={selectedRoutes.length !== 1}
+              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition shadow-sm flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Select ONE route to add to existing folder"
+            >
+              <FaFolder className="mr-2 h-4 w-4" />
+              Add to Folder
             </button>
           </div>
         </div>
@@ -354,6 +447,11 @@ export default function ManageRoutes() {
                       {route.subRoutes && route.subRoutes.length > 0 && (
                         <div className="text-xs text-gray-500 mt-1">
                           {route.subRoutes.length} sub-routes
+                        </div>
+                      )}
+                      {route.parentRoute && (
+                        <div className="text-xs text-blue-600 mt-1">
+                          📁 In folder
                         </div>
                       )}
                     </td>
@@ -463,6 +561,84 @@ export default function ManageRoutes() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add to Folder Modal */}
+      {showAddToFolderModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900">Add to Existing Folder</h3>
+              <button
+                onClick={() => {
+                  setShowAddToFolderModal(false);
+                  setSelectedFolderId('');
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Selected Route */}
+              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm font-medium text-blue-800 mb-2">Selected Route:</p>
+                <div className="flex flex-wrap gap-1">
+                  {selectedRoutes.map(id => {
+                    const route = flatRoutes.find(r => r._id === id);
+                    return (
+                      <span key={id} className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded font-medium">
+                        {route?.name}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Available Folders */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Choose Folder *
+                </label>
+                <select 
+                  value={selectedFolderId}
+                  onChange={(e) => setSelectedFolderId(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition"
+                  required
+                >
+                  <option value="">Select a folder...</option>
+                  {availableFolders.map(folder => (
+                    <option key={folder._id} value={folder._id}>
+                      📁 {folder.name} ({folder.subRoutes?.length || 0} routes)
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={handleAddToFolder}
+                  disabled={loading || !selectedFolderId}
+                  className="flex-1 px-4 py-3 bg-green-500 text-white font-medium rounded-lg hover:bg-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Adding...' : 'Add to Folder'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddToFolderModal(false);
+                    setSelectedFolderId('');
+                  }}
+                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

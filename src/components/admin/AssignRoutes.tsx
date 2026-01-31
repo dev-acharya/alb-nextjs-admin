@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from "react";
-import { FaUserShield, FaCheck, FaSave, FaFolderOpen, FaChevronRight } from "react-icons/fa";
+import { FaUserShield, FaCheck, FaSave, FaChevronRight, FaFolderOpen } from "react-icons/fa";
 import Swal from "sweetalert2";
 
 interface Admin {
@@ -19,8 +19,9 @@ interface Route {
   icon: string;
   isActive: boolean;
   order: number;
+  parentRoute?: string;
   subRoutes?: Route[];
-  expanded?: boolean; // Frontend state
+  expanded?: boolean;
 }
 
 export default function AssignRoutes() {
@@ -30,7 +31,6 @@ export default function AssignRoutes() {
   const [selectedRoutes, setSelectedRoutes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch admins and routes
   useEffect(() => {
     fetchAdmins();
     fetchRoutes();
@@ -61,7 +61,6 @@ export default function AssignRoutes() {
 
       if (response.ok) {
         const data = await response.json();
-        // Add expanded state to routes
         const routesWithState = (data.routes || []).map((route: Route) => ({
           ...route,
           expanded: false
@@ -73,7 +72,6 @@ export default function AssignRoutes() {
     }
   };
 
-  // Toggle folder expansion
   const toggleFolder = (routeId: string) => {
     setRoutes(prevRoutes =>
       prevRoutes.map(route =>
@@ -84,13 +82,11 @@ export default function AssignRoutes() {
     );
   };
 
-  // Handle admin selection
   const handleAdminSelect = (admin: Admin) => {
     setSelectedAdmin(admin);
     setSelectedRoutes(admin.assignedRoutes || []);
   };
 
-  // Toggle route selection
   const toggleRoute = (routeId: string) => {
     if (selectedRoutes.includes(routeId)) {
       setSelectedRoutes(selectedRoutes.filter(id => id !== routeId));
@@ -99,7 +95,6 @@ export default function AssignRoutes() {
     }
   };
 
-  // Handle assign routes
   const handleAssignRoutes = async () => {
     if (!selectedAdmin) {
       Swal.fire({
@@ -137,7 +132,6 @@ export default function AssignRoutes() {
           `,
           confirmButtonColor: '#dc2626',
         });
-
         fetchAdmins();
       } else {
         throw new Error(data.error || 'Failed to assign routes');
@@ -162,9 +156,9 @@ export default function AssignRoutes() {
           <p className="text-sm text-gray-600 mt-1">Click folders to expand and assign routes/sub-routes</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Admin List */}
-          <div>
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Admin List - UNCHANGED */}
+          <div className=" max-w-sm md:w-1/3">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Admin</h3>
             <div className="border border-gray-200 rounded-lg divide-y divide-gray-200 max-h-[600px] overflow-y-auto">
               {admins.length === 0 ? (
@@ -203,8 +197,8 @@ export default function AssignRoutes() {
             </div>
           </div>
 
-          {/* Routes List */}
-          <div>
+          {/* Routes List - FIXED PER REQUIREMENTS */}
+          <div className=" flex-1">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900">
                 Assign Routes {selectedAdmin && `to ${selectedAdmin.username}`}
@@ -229,27 +223,48 @@ export default function AssignRoutes() {
                   ) : (
                     routes.map((route) => (
                       <div key={route._id} className="p-4">
-                        {/* FOLDER ROW - Click to expand */}
-                        <div 
-                          className="flex items-center cursor-pointer hover:bg-gray-50 p-2 -m-2 rounded-lg -mx-1"
-                          onClick={() => toggleFolder(route._id)}
-                        >
-                          <div className="w-5 h-5 mr-3 flex items-center">
-                            <FaChevronRight 
-                              className={`transition-transform duration-200 ${
-                                route.expanded ? 'rotate-90' : ''
-                              }`} 
-                            />
-                          </div>
-                          <div className="flex-1">
-                            <div className="text-sm font-semibold text-gray-900">{route.name}</div>
-                            <div className="text-xs text-gray-500 mt-1">
-                              {route.subRoutes?.length || 0} sub-routes
+                        {/* ✅ FOLDER ROW - NO CHECKBOX, CLICK TO EXPAND ONLY */}
+                        {!route.path ? (
+                          <div 
+                            className="flex items-center cursor-pointer hover:bg-gray-50 p-2 -m-2 rounded-lg"
+                            onClick={() => toggleFolder(route._id)}
+                          >
+                            <div className="w-5 h-5 mr-3 flex items-center">
+                              <FaChevronRight 
+                                className={`transition-transform duration-200 text-gray-500 ${
+                                  route.expanded ? 'rotate-90' : ''
+                                }`} 
+                              />
+                            </div>
+                            <div className="flex items-center">
+                              <FaFolderOpen className="h-4 w-4 text-purple-500 mr-2" />
+                              <div>
+                                <div className="text-sm font-semibold text-gray-900">{route.name}</div>
+                                <div className="text-xs text-gray-500">
+                                  {route.subRoutes?.length || 0} sub-routes
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
+                        ) : (
+                          /* ✅ ROOT ROUTE - HAS CHECKBOX (Dashboard etc.) */
+                          <label className="flex items-center cursor-pointer hover:bg-gray-50 p-2 -m-2 rounded-lg">
+                            <input
+                              type="checkbox"
+                              checked={selectedRoutes.includes(route._id)}
+                              onChange={() => toggleRoute(route._id)}
+                              className="w-4 h-4 text-red-500 border-gray-300 rounded focus:ring-red-500 mr-3"
+                            />
+                            <div>
+                              <div className="text-sm font-semibold text-gray-900">{route.name}</div>
+                              <div className="text-xs text-gray-500">
+                                {route.path} • {route.icon}
+                              </div>
+                            </div>
+                          </label>
+                        )}
 
-                        {/* SUB-ROUTES - Show when expanded */}
+                        {/* ✅ SUB-ROUTES - ONLY WHEN FOLDER EXPANDED */}
                         {route.expanded && route.subRoutes && route.subRoutes.length > 0 && (
                           <div className="ml-8 mt-2 space-y-2 border-l border-gray-200 pl-4">
                             {route.subRoutes.map((subRoute) => (
